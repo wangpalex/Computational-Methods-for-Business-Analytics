@@ -40,3 +40,18 @@ The 3 lines are giving conflicting insights. The young and old only lines sugges
 
 ### III. Can you propose an alternative estimation using all the data in order to obtain the same insight as the two separate regressions using only the old or the young people?
 Maybe, collect old only data on the same range as young could solve the problem?
+
+## Q3
+```{r Q3}
+set.seed(37)
+# Data generation
+x = rnorm(1000) # Sample 1000 points from N(0, 1)
+e = rnorm(1000)
+y = 0.7 + 2*x + e
+plot(y ~ x)
+
+# Use lm()
+model = lm(y ~ x)
+summary(model)
+# y = 0.734 + 1.954 * x
+```
