@@ -7,22 +7,36 @@ output: pdf_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## R Markdown
+## Q1
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
-
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
-```{r cars}
-summary(cars)
+```{r }
+library(Matrix)
+rankMatrix(matrix(c(1,1,2,2),nrow=2))
+rankMatrix(matrix(c(1,1,2,2,1,2),nrow=3))
+rankMatrix(matrix(c(1,1,2,0),nrow=2))
+rankMatrix(matrix(c(1,2,3,2,0,2),nrow=3))
 ```
+## Q2
+### I. Reproducing the plot
+```{r Q2}
+df = read.csv("exercise_and_cholesterol.csv")
+old_df = df[df$Age=="Old",]
+young_df = df[df$Age=="Young",]
 
-## Including Plots
+attach(df)
+plot(Cholesterol ~ Exercise,col=ifelse(Age=="Old","red","blue"),pch=ifelse(Age=="Old",20,17),ylim=c(35,50),xlim=c(6,18))
 
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
+all_model = lm(Cholesterol ~ Exercise, data=df)
+young_model = lm(Cholesterol ~ Exercise, data=young_df)
+old_model = lm(Cholesterol ~ Exercise, data=old_df)
+abline(all_model$coefficients[1],all_model$coefficients[2], lty="solid")
+abline(young_model$coefficients[1],young_model$coefficients[2], lty="dotted",col="blue")
+abline(old_model$coefficients[1],old_model$coefficients[2], lty="dashed",col="red")
+legend(6, 50, legend=c("Old only", "Young only","Combined data"),
+       col=c("red", "blue","black"), lty=c("dotted","dashed","solid"), cex=1)
 ```
+### II. Are the three lines giving consistent or conflicting insights? Explain why.
+The 3 lines are giving conflicting insights. The young and old only lines suggest that Cholesterol and Exercise has negative association while the combined data suggesting positive association. The inconsistency occurs because Cholesterol is positively associated with Age so that the two groups are different. Furthermore, the old only group's exercise data is in the range between 13 - 18 while the young only group's data ranging from 7 - 12.
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+### III. Can you propose an alternative estimation using all the data in order to obtain the same insight as the two separate regressions using only the old or the young people?
+Maybe, collect old only data on the same range as young could solve the problem?
