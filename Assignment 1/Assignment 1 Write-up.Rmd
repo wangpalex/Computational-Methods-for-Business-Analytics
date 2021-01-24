@@ -43,22 +43,17 @@ The 3 lines are giving conflicting insights. The young and old only lines sugges
 ### III. Can you propose an alternative estimation using all the data in order to obtain the same insight as the two separate regressions using only the old or the young people?
 Maybe, collect old only data on the same range as young could solve the problem?
 ```{r Q2.3 Test experiemt}
-df_alter=df
-df_alter[df_alter$Age=="Old",]$Exercise = df_alter[df_alter$Age=="Old",]$Exercise - 6
-old_df_alter = old_df
-old_df_alter$Exercise = old_df_alter$Exercise - 6
-
 plot(young_df$Cholesterol ~ young_df$Exercise,col="blue",pch=17,ylim=c(35,50),xlim=c(6,18),xlab="",ylab="")
 par(new=TRUE)
-plot(old_df_alter$Cholesterol ~ old_df_alter$Exercise,col="red",pch=20,ylim=c(35,50),xlim=c(6,18),xlab="Exercise",ylab="Cholesterol")
+plot(old_df_alter$Cholesterol ~ old_df$Exercise,col="red",pch=20,ylim=c(35,50),xlim=c(6,18),xlab="Exercise",ylab="Cholesterol")
 
-all_model = lm(Cholesterol ~ Exercise, data=df_alter)
+all_model = lm(Cholesterol ~ Exercise + Age, data=df)
 young_model = lm(Cholesterol ~ Exercise, data=young_df)
-old_model = lm(Cholesterol ~ Exercise, data=old_df_alter)
+old_model = lm(Cholesterol ~ Exercise, data=old_df)
 abline(all_model$coefficients[1],all_model$coefficients[2], lty="solid")
 abline(young_model$coefficients[1],young_model$coefficients[2], lty="dotted",col="blue")
 abline(old_model$coefficients[1],old_model$coefficients[2], lty="dashed",col="red")
-legend(12, 50, legend=c("Old (Exercise shift -6) only", "Young only","Combined data"),
+legend(6, 50, legend=c("Old only", "Young only","Combined data"),
        col=c("red", "blue","black"), lty=c("dotted","dashed","solid"), cex=1)
 
 ```
