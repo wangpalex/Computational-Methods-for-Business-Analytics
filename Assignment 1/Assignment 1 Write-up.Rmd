@@ -72,7 +72,7 @@ abline(beta_h[1],beta_h[2],col="red",lty="dashed")
 legend(-3,8,legend=c("lm()", "Matrix algebra"),col=c("green","red"),lty=c("dashed","dashed"))
 ```
 Use optim(): $\hat{\beta} = argmin_{\beta} \sum_{i=1,...,n}(y_i - \beta_0 - \beta_1 \times x_i)^2$
-```{r Q3.1.d}
+```{r Q3.1.d1}
 X = cbind(rep(1,1000), x)
 Y = y
 # Objective function
@@ -83,7 +83,7 @@ fun = function(beta) {
 optim(runif(2),fun) # \beta0 = 0.734, \beta1 = 1.954
 ```
 Use formula for 1 variable regression: $\bar{y} = \hat{\beta_0} + \hat{\beta_1} \bar{x}$, $\hat{\beta_1} = \frac{Cov(x_i,y_i)}{Var(x_i)}$
-```{r Q3.1.d}
+```{r Q3.1.d2}
 beta1 = cov(x,y)/var(x)
 beta0 = mean(y) - beta1*mean(x)
 beta0 # 0.734
@@ -91,20 +91,20 @@ beta1 # 1.954
 ```
 
 
-```{r Q3.2.1}
+```{r Q3.2.1.a}
 set.seed(37)
 S = 10000
 single_loop = function(N) {
   x = rnorm(N)
   e = rnorm(N)
   Y = 0.7 + 2*x + e
-  X = cbind(rep(1,N),x) # Add bias(constant for intercept) to data matrix
+  X = cbind(rep(1,N),x)
   beta_h = ginv(t(X)%*%X)%*%t(X)%*%Y
   beta1 = beta_h[2]
 }
 vec_loop = Vectorize(single_loop)
 
-par(mfrow=c(1,4))
+
 res1 = vec_loop(rep(25,S))
 hist(res1)
 res2 = vec_loop(rep(100,S))
@@ -128,14 +128,14 @@ qqline(res2)
 ```
 
 Use uniformly distributed error
-```{r Q3.2.2}
+```{r Q3.2.2.b}
 set.seed(37)
 S = 10000
 single_loop = function(N) {
   x = rnorm(N)
   e = runif(N)
   Y = 0.7 + 2*x + e
-  X = cbind(rep(1,N),x) # Add bias(constant for intercept) to data matrix
+  X = cbind(rep(1,N),x)
   beta_h = ginv(t(X)%*%X)%*%t(X)%*%Y
   beta1 = beta_h[2]
 }
@@ -162,14 +162,14 @@ qqline(res2)
 ```
 
 Use Cauchy distributed error
-```{r Q3.2.2}
+```{r Q3.2.2.c}
 set.seed(37)
 S = 10000
 single_loop = function(N) {
   x = rnorm(N)
   e = rcauchy(N)
   Y = 0.7 + 2*x + e
-  X = cbind(rep(1,N),x) # Add bias(constant for intercept) to data matrix
+  X = cbind(rep(1,N),x)
   beta_h = ginv(t(X)%*%X)%*%t(X)%*%Y
   beta1 = beta_h[2]
 }
