@@ -10,7 +10,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ## Q1
 
 ```{r }
-library(Matrix)
+library(Matrix) # Matrix operations
 library(MASS) # For Moore-Penrose pseudo-inverse ginv()
 rankMatrix(matrix(c(1,1,2,2),nrow=2))
 rankMatrix(matrix(c(1,1,2,2,1,2),nrow=3))
@@ -165,7 +165,7 @@ mean(res1) # 1.999372
 mean(res2) # 2.000016
 var(res1) # 0.003772373
 var(res2) # 0.0008630136
-t.test(res1, res2, alternative = "two.sided", var.equal = TRUE) # p-value = 0.3446
+t.test(res1, res2, alternative = "two.sided", var.equal = FALSE) # p-value = 0.3446
 
 #Anderson-Darling normality test
 ad.test(res1) # p-value = 0.4207
@@ -195,7 +195,7 @@ res1 = vec_loop(rep(25,S))
 hist(res1)
 res2 = vec_loop(rep(100,S))
 hist(res2)
-mean(res1) # 1.907382
+mean(res1) # 1.907382x
 mean(res2) # -1.599096
 var(res1) # 3427.213
 var(res2) # 29851.75
@@ -209,4 +209,128 @@ qqline(res1)
 ad.test(res1) # p-value = 2.2e-16
 qqnorm(res2)
 qqline(res2)
+```
+
+## Q4
+$$x_{n+1} = x_n (1+r)-P$$
+where $x_0 = 10000, x_{60} = 0, P = 250$
+```{r Numertical methods} 
+library(numDeriv)
+obj_func = function(r, x0=10000,p=250, n=60) {
+  x = x0
+  for(i in 1:n) {
+    x = x*(1+r)-p
+  }
+  res = x
+}
+
+bisection_method = function(f,left,right,tol=1e-8,n=1000) {
+  if(sign(f(left))==sign(f(right))) {
+    print("Bad Initial Points!")
+    stop()
+  }
+  
+  history = right
+  for (i in 1:n) {
+    mid = (left+right)/2
+    if (f(mid)==0) {
+      history = c(history,mid)
+      res = list('optim r' = mid, 'iterations' = i,'history'=history)
+      return(res)
+    } else if(sign(f(mid))==sign(f(right))) {
+      right = mid
+      history = c(history,right)
+    } else {
+      left = mid
+      history = c(history,left)
+    }
+    
+    if(abs(left-right)<tol) {
+      res = list('optim r' = mid, 'iterations' = i,'history'=history)
+      return(res)
+    }
+  }
+  print("Maximum number of iteration reached")
+}
+
+newton_method = function(f, r0, tol=1e-8,n=1000) {
+  history = r0
+  for(i in 1:n) {
+    deriv = genD(func = f, x = r0)$D
+    r1 = r0 - f(r0)/deriv[1]
+    history = c(history,r1)
+    if(abs(r1-r0) < tol) {
+      res = list('optim r' = r1, 'iterations' = i,'history'=history)
+      return(res)
+    }
+    r0 = r1
+  }
+  print("Maximum number of iteration reached")
+  res = list('optim r' = r1, 'iterations' = i,'history'=history)
+  return(res)
+}
+
+sol1 = newton_method(obj_func, 0.01)
+sol2 = newton_method(obj_func, 0.02)
+sol3 = newton_method(obj_func, 0.03)
+sol4 = bisection_method(obj_func, 0.01, 0.025)
+sol5 = bisection_method(obj_func, 0.01, 0.15)
+
+mat = cbind(sol1$history,sol2$history,sol3$history)
+maxLen = nrow(mat)
+plot(1:length(sol5$history),sol5$history,type="b",pch=20,col="blue",ylim=c(0.01,0.03))
+abline(sol1$`optim r`,0,col="red")
+lines(1:length(sol2$history),sol2$history,type="b",pch=20,col="red")
+lines(1:length(sol1$history),sol1$history,type="b",pch=20,col="green")
+lines(1:length(sol4$history),sol4$history,type="b",pch=20,col="purple")
+lines(1:length(sol3$history),sol3$history,type="b",pch=20,col="orange")
+```
+
+## Q5
+$$f(x)=3x^2 \cdot I(0,1) \\
+\implies 
+F(x) = \int_0^x f(x)dx = x^3,x \in [0,1] \\
+\implies
+x = F^{-1}(u) = u^{1/3}
+$$
+```{r Q5.1}
+set.seed(37)
+
+invSampling = function(N) {
+  # Returns a vector of N elements sampled by inversion.
+  return(runif(N)^(1/3))
+}
+
+hist(invSampling(10^6))
+```
+
+$$E[p(x,y)|y] = \int_0^1 p(x,y)f(x) dx$$
+
+```{r Q5.2}
+revenue = function(x,y) {
+  return(y*(log(x)+1)-y^2*sqrt(1-x^4))
+}
+
+X = invSampling(1000000)
+expectedReturn = function(y) {
+  # Compute expected return given y
+  N = 1000000
+  #X = invSampling(N)
+  Y = rep(y,N)
+  sum(mapply(revenue, X, Y))/N
+}
+```
+
+```{r Q5_run_Simulation}
+y = seq(0,1,0.01)
+returns = sapply(y,expectedReturn)
+```
+```{r plot}
+plot(returns ~ y, type="l")
+abline(0,0)
+```
+
+```{r find_optim_y}
+optim(0, function(y){-1*expectedReturn(y)})
+#0.4639308
 ```
