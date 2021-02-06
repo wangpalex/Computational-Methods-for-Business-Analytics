@@ -1,11 +1,17 @@
 ---
 title: "Assignment 1 Submission"
+author:
+  - Gao Haochun A0194525Y
+  - Ge Siqi
+  - Wang Pei A0194486M
+  - Wei Yifei A0203451W
 output: pdf_document
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
+Group 37: Gao Haochun
 
 ## Q1
 
@@ -25,7 +31,8 @@ old_df = df[df$Age=="Old",]
 young_df = df[df$Age=="Young",]
 
 attach(df)
-plot(Cholesterol ~ Exercise,col=ifelse(Age=="Old","red","blue"),pch=ifelse(Age=="Old",20,17),ylim=c(35,50),xlim=c(6,18))
+plot(Cholesterol ~ Exercise,col=ifelse(Age=="Old","red","blue"),
+     pch=ifelse(Age=="Old",20,17),ylim=c(35,50),xlim=c(6,18))
 
 all_model = lm(Cholesterol ~ Exercise, data=df)
 young_model = lm(Cholesterol ~ Exercise, data=young_df)
@@ -38,14 +45,17 @@ legend(6, 50, legend=c("Old only", "Young only","Combined data"),
 ```
 
 ### II. Are the three lines giving consistent or conflicting insights? Explain why.
+
+
 The 3 lines are giving conflicting insights. The young and old only lines suggest that Cholesterol and Exercise has negative association while the combined data suggesting positive association. The inconsistency occurs because Cholesterol is positively associated with Age so that the two groups are different. Furthermore, the old only group's exercise data is in the range between 13 - 18 while the young only group's data ranging from 7 - 12.
 
 ### III. Can you propose an alternative estimation using all the data in order to obtain the same insight as the two separate regressions using only the old or the young people?
-Maybe, collect old only data on the same range as young could solve the problem?
+
+[Replace this with answer here]
 ```{r Q2.3 Test experiemt}
 plot(young_df$Cholesterol ~ young_df$Exercise,col="blue",pch=17,ylim=c(35,50),xlim=c(6,18),xlab="",ylab="")
 par(new=TRUE)
-plot(old_df_alter$Cholesterol ~ old_df$Exercise,col="red",pch=20,ylim=c(35,50),xlim=c(6,18),xlab="Exercise",ylab="Cholesterol")
+plot(old_df$Cholesterol ~ old_df$Exercise,col="red",pch=20,ylim=c(35,50),xlim=c(6,18),xlab="Exercise",ylab="Cholesterol")
 
 all_model = lm(Cholesterol ~ Exercise + Age, data=df)
 young_model = lm(Cholesterol ~ Exercise, data=young_df)
@@ -59,6 +69,8 @@ legend(6, 50, legend=c("Old only", "Young only","Combined data"),
 ```
 
 ## Q3
+
+### Data generation
 ```{r Q3.1.a}
 set.seed(37)
 # Data generation
@@ -67,14 +79,19 @@ e = rnorm(1000)
 y = 0.7 + 2*x + e
 plot(y ~ x)
 ```
-Use R's lm() function: 
+### Use R's lm() function: 
+$$\hat{y} = 0.734 + 1.954 x$$
 ```{r Q3.1.b}
 # Use lm()
 model = lm(y ~ x)
 summary(model)
 # y = 0.734 + 1.954 * x
 ```
-Use matrix algebra: $\hat{\beta} = (X^T X)^{-1} X^T Y$
+### Use matrix algebra: 
+$$\hat{\beta} = (X^T X)^{-1} X^T Y \\
+\implies
+\hat{y} = 0.734 + 1.954 x$$
+
 ```{r Q3.1.c}
 # Use matrix algebra
 X = cbind(rep(1,1000),x) # Add bias(constant for intercept) to data matrix
@@ -87,7 +104,10 @@ abline(model$coefficients[1],model$coefficients[2],col="green")
 abline(beta_h[1],beta_h[2],col="red",lty="dashed")
 legend(-3,8,legend=c("lm()", "Matrix algebra"),col=c("green","red"),lty=c("dashed","dashed"))
 ```
-Use optim(): $\hat{\beta} = argmin_{\beta} \sum_{i=1,...,n}(y_i - \beta_0 - \beta_1 \times x_i)^2$
+### Use R's optim(): 
+$$\hat{\beta} = argmin_{\beta} \sum_{i=1,...,n}(y_i - \beta_0 - \beta_1 \times x_i)^2 \\
+\implies
+\hat{y} = 0.734 + 1.954 x$$
 ```{r Q3.1.d1}
 X = cbind(rep(1,1000), x)
 Y = y
@@ -98,7 +118,13 @@ fun = function(beta) {
 # Start optimization with random initialization
 optim(runif(2),fun) # \beta0 = 0.734, \beta1 = 1.954
 ```
-Use formula for 1 variable regression: $\bar{y} = \hat{\beta_0} + \hat{\beta_1} \bar{x}$, $\hat{\beta_1} = \frac{Cov(x_i,y_i)}{Var(x_i)}$
+### Use formula for 1 variable regression: 
+$$
+\hat{\beta_1} = \frac{Cov(x_i,y_i)}{Var(x_i)} \\
+\hat{\beta_0} = \bar{y} - \hat{\beta_1} \bar{x} \\
+\implies
+\hat{y} = 0.734 + 1.954 
+$$
 ```{r Q3.1.d2}
 beta1 = cov(x,y)/var(x)
 beta0 = mean(y) - beta1*mean(x)
@@ -106,7 +132,7 @@ beta0 # 0.734
 beta1 # 1.954
 ```
 
-
+Check distribution of $\hat{\beta_1}$
 ```{r Q3.2.1.a}
 set.seed(37)
 S = 10000
@@ -143,7 +169,7 @@ qqnorm(res2)
 qqline(res2)
 ```
 
-Use uniformly distributed error
+### Use uniformly distributed error
 ```{r Q3.2.2.b}
 set.seed(37)
 S = 10000
@@ -177,7 +203,7 @@ qqnorm(res2)
 qqline(res2)
 ```
 
-Use Cauchy distributed error
+### Use Cauchy distributed error
 ```{r Q3.2.2.c}
 set.seed(37)
 S = 10000
@@ -212,10 +238,18 @@ qqline(res2)
 ```
 
 ## Q4
-$$x_{n+1} = x_n (1+r) - P$$
-where $x_0 = 10000, x_{60} = 0, P = 250$
+Recurrent formula of compound interest rate:
+$$x_{n+1} = x_n (1+r) - P \\
+\implies
+x_n = x_0 (1+r)^n + P \frac{1-(1+r)^n}{r}$$
+
+Given: $$x_0 = 10000, x_{60} = 0, P = 250 \\
+\implies
+r = 0.01439478
+$$
 ```{r Numertical methods} 
 library(numDeriv)
+
 obj_func = function(r, x0=10000,p=250, n=60) {
   # Iteration method to calculate xn
   x = x0
@@ -230,7 +264,7 @@ analytical_func = function(r, x0=10000,p=250, n=60) {
   xn = x0*(1+r)^n + p*(1-(1+r)^n)/r
 }
 
-bisection_method = function(f,left,right,tol=1e-8,n=1000) {
+bisection_method = function(f,left,right,tol=1e-10,n=1000) {
   if(sign(f(left))==sign(f(right))) {
     print("Bad Initial Points!")
     stop()
@@ -279,14 +313,15 @@ newton_method = function(f, r0, tol=1e-8,n=1000) {
 }
 
 sol1 = newton_method(obj_func, 0.01)
+sol1$`optim r`
 sol2 = newton_method(analytical_func, 0.02)
 sol3 = newton_method(analytical_func, 0.03)
 sol4 = bisection_method(obj_func, 0.01, 0.025)
-sol5 = bisection_method(analytical_func, 0.01, 0.15)
+sol5 = bisection_method(analytical_func, 0.01, 0.015)
 
 mat = cbind(sol1$history,sol2$history,sol3$history)
 maxLen = nrow(mat)
-plot(1:length(sol5$history),sol5$history,type="b",pch=20,col="blue",ylim=c(0.01,0.03))
+plot(1:length(sol5$history),sol5$history,type="b",pch=20,col="blue",ylim=c(0.01,0.03),xlab="iterations",ylab="r")
 abline(sol1$`optim r`,0,col="red")
 lines(1:length(sol2$history),sol2$history,type="b",pch=20,col="red")
 lines(1:length(sol1$history),sol1$history,type="b",pch=20,col="green")
@@ -295,6 +330,7 @@ lines(1:length(sol3$history),sol3$history,type="b",pch=20,col="orange")
 ```
 
 ## Q5
+Find the inverse function of X
 $$f(x)=3x^2 \cdot I(0,1) \\
 \implies 
 F(x) = \int_0^x f(x)dx = x^3,x \in [0,1] \\
@@ -312,9 +348,12 @@ invSampling = function(N) {
 hist(invSampling(10^6))
 ```
 
+Expected return given y:
 $$E[p(x,y)|y] = \int_0^1 p(x,y)f(x) dx$$
 
 ```{r Q5.2}
+set.seed(37)
+
 revenue = function(x,y) {
   return(y*(log(x)+1)-y^2*sqrt(1-x^4))
 }
@@ -325,11 +364,14 @@ expectedReturn = function(y) {
   N = 1000000
   #X = invSampling(N)
   Y = rep(y,N)
-  sum(mapply(revenue, X, Y))/N
+  
+  # Take mean of 10^6 sampled return to approximate expectation
+  res = sum(mapply(revenue, X, Y))/N
 }
 ```
 
 ```{r Q5_run_Simulation}
+# take y from 0 to 1 with step 0.01
 y = seq(0,1,0.01)
 returns = sapply(y,expectedReturn)
 ```
@@ -338,6 +380,7 @@ plot(returns ~ y, type="l")
 abline(0,0)
 ```
 
+Use R's optim() to minimize objective function:
 ```{r find_optim_y}
 optim(0, function(y){-1*expectedReturn(y)})
 #0.4639308
