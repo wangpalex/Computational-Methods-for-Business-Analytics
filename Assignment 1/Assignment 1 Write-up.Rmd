@@ -212,16 +212,22 @@ qqline(res2)
 ```
 
 ## Q4
-$$x_{n+1} = x_n (1+r)-P$$
+$$x_{n+1} = x_n (1+r) - P$$
 where $x_0 = 10000, x_{60} = 0, P = 250$
 ```{r Numertical methods} 
 library(numDeriv)
 obj_func = function(r, x0=10000,p=250, n=60) {
+  # Iteration method to calculate xn
   x = x0
   for(i in 1:n) {
-    x = x*(1+r)-p
+    x = x*(1+r) - p
   }
   res = x
+}
+
+analytical_func = function(r, x0=10000,p=250, n=60) {
+  # Close form of xn
+  xn = x0*(1+r)^n + p*(1-(1+r)^n)/r
 }
 
 bisection_method = function(f,left,right,tol=1e-8,n=1000) {
@@ -237,7 +243,7 @@ bisection_method = function(f,left,right,tol=1e-8,n=1000) {
       history = c(history,mid)
       res = list('optim r' = mid, 'iterations' = i,'history'=history)
       return(res)
-    } else if(sign(f(mid))==sign(f(right))) {
+    } else if (sign(f(mid))==sign(f(right))) {
       right = mid
       history = c(history,right)
     } else {
@@ -245,12 +251,14 @@ bisection_method = function(f,left,right,tol=1e-8,n=1000) {
       history = c(history,left)
     }
     
-    if(abs(left-right)<tol) {
+    if(abs(left-right) < tol) {
       res = list('optim r' = mid, 'iterations' = i,'history'=history)
       return(res)
     }
   }
   print("Maximum number of iteration reached")
+  res = list('optim r' = mid, 'iterations' = i,'history'=history)
+  return(res)
 }
 
 newton_method = function(f, r0, tol=1e-8,n=1000) {
@@ -271,10 +279,10 @@ newton_method = function(f, r0, tol=1e-8,n=1000) {
 }
 
 sol1 = newton_method(obj_func, 0.01)
-sol2 = newton_method(obj_func, 0.02)
-sol3 = newton_method(obj_func, 0.03)
+sol2 = newton_method(analytical_func, 0.02)
+sol3 = newton_method(analytical_func, 0.03)
 sol4 = bisection_method(obj_func, 0.01, 0.025)
-sol5 = bisection_method(obj_func, 0.01, 0.15)
+sol5 = bisection_method(analytical_func, 0.01, 0.15)
 
 mat = cbind(sol1$history,sol2$history,sol3$history)
 maxLen = nrow(mat)
