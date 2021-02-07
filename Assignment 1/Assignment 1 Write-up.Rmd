@@ -338,10 +338,10 @@ Given: $$x_0 = 10000, x_{60} = 0, P = 250 \\
 \implies
 r = 0.01439478$$
 
-```{r Numertical methods} 
+```{r Target Function} 
 library(numDeriv)
 
-obj_func = function(r, x0=10000,p=250, n=60) {
+func1 = function(r, x0=10000,p=250, n=60) {
   # Iteration method to calculate xn
   x = x0
   for(i in 1:n) {
@@ -350,10 +350,16 @@ obj_func = function(r, x0=10000,p=250, n=60) {
   res = x
 }
 
-analytical_func = function(r, x0=10000,p=250, n=60) {
+func2 = function(r, x0=10000,p=250, n=60) {
   # Close form of xn
   xn = x0*(1+r)^n + p*(1-(1+r)^n)/r
 }
+```
+func1 and func2 are equivalent to each other. For simplicity, func2 will be used for calculation. 
+
+
+
+```{r Q4.1 & Q4.2} 
 
 bisection_method = function(f,left,right,tol=1e-10,n=1000) {
   if(sign(f(left))==sign(f(right))) {
@@ -403,22 +409,27 @@ newton_method = function(f, r0, tol=1e-8,n=1000) {
   return(res)
 }
 
-sol1 = newton_method(obj_func, 0.01)
-sol1$`optim r`
-sol2 = newton_method(analytical_func, 0.02)
-sol3 = newton_method(analytical_func, 0.03)
-sol4 = bisection_method(obj_func, 0.01, 0.025)
-sol5 = bisection_method(analytical_func, 0.01, 0.015)
+sol1 = newton_method(func2, 0.1)
+sol2 = newton_method(func2, 0.2)
+sol3 = bisection_method(func2, 0.01, 0.1)
+sol4 = bisection_method(func2, 0.01, 0.2)
+c(sol1$`optim r`, sol2$`optim r`, sol3$`optim r`, sol4$`optim r`)
+```
+Bisection method and Newton method come to the same result: monthly interest rate r = 0.01439478.
 
-mat = cbind(sol1$history,sol2$history,sol3$history)
-maxLen = nrow(mat)
-plot(1:length(sol5$history),sol5$history,type="b",pch=20,col="blue",ylim=c(0.01,0.03),xlab="iterations",ylab="r")
+
+
+```{r Q4.3} 
+
+plot(1:length(sol2$history),sol2$history,type="b",pch=20,col="blue",ylim=c(0.01,0.2),xlab="iterations",ylab="r")
 abline(sol1$`optim r`,0,col="red")
-lines(1:length(sol2$history),sol2$history,type="b",pch=20,col="red")
-lines(1:length(sol1$history),sol1$history,type="b",pch=20,col="green")
+lines(1:length(sol1$history),sol1$history,type="b",pch=20,col="red")
 lines(1:length(sol4$history),sol4$history,type="b",pch=20,col="purple")
 lines(1:length(sol3$history),sol3$history,type="b",pch=20,col="orange")
+
 ```
+As shown in the plot, bisection method converges faster than Newton method for the function in this question.  
+
 
 ## Q5
 ### I. Use inversion sampling to simulate 10. random draws for market condition x.
