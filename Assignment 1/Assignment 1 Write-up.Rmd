@@ -373,7 +373,7 @@ expectedReturn = function(y) {
 ```{r Q5_run_Simulation}
 # take y from 0 to 1 with step 0.01
 y = seq(0,1,0.01)
-returns = sapply(y,expectedReturn)
+#returns = sapply(y,expectedReturn)
 ```
 ```{r plot}
 plot(returns ~ y, type="l")
@@ -382,6 +382,28 @@ abline(0,0)
 
 Use R's optim() to minimize objective function:
 ```{r find_optim_y}
-optim(0, function(y){-1*expectedReturn(y)})
-#0.4639308
+newton_optim = function(f, x0, tol=1e-10, n=1000, maximize=FALSE) {
+  if(maximize) {
+    f = function(x) {-1*f(x)}
+  }
+  history = x0
+  
+  for(i in 1:n) {
+    deriv = genD(func=f, x=x0)$D
+    x1 = x0 - deriv[1]/deriv[2]
+    history = c(history, x1)
+    if(abs(x1 - x0) < tol) {
+      return(list(`optim x`=x1, `iterations`=i, `history`=history))
+    }
+    # Continue iteration
+    x0 = x1
+  }
+  print("Maximum number of iteration reached")
+  return(list(`optim x`=x1, `iterations`=i, `history`=history))
+}
+
+optimize(function(y){-1*expectedReturn(y)},c(0,1))
+# 0.4637619
+newton_optim(expectedReturn, 0)
+# 0.4637619
 ```
