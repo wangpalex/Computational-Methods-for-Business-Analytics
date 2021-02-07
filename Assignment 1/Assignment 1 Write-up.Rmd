@@ -2,7 +2,7 @@
 title: "Assignment 1 Submission"
 author:
   - Gao Haochun A0194525Y
-  - Ge Siqi
+  - Ge Siqi A0194550A
   - Wang Pei A0194486M
   - Wei Yifei A0203451W
 output: pdf_document
@@ -11,21 +11,103 @@ output: pdf_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
-Group 37: Gao Haochun
-
 ## Q1
 
-```{r }
+### I. Which of the 4 data violate(s) the rank condition in OLS regression?
+
+$$\begin{equation*}
+A = 
+\begin{bmatrix}
+1 & 1 \\
+2 & 2
+\end{bmatrix}
+
+B = 
+\begin{bmatrix}
+1 & 1 \\
+2 & 2 \\
+1 & 2
+\end{bmatrix}
+
+C = 
+\begin{bmatrix}
+1 & 1 \\
+2 & 0
+\end{bmatrix}
+D = 
+\begin{bmatrix}
+1 & 2 & 3 \\
+2 & 0 & 2
+\end{bmatrix}
+\end{equation*}$$
+
+The full assumption can be denoted by rank(X)=k, where X is a n*k matrix, n observations, k independent variables.Thus, full rank assumption can be interpreted as: all the columns are linearly independent. In other words, all independent variables (including the constant) are linearly independent.
+
+```{r Q1-1}
 library(Matrix) # Matrix operations
 library(MASS) # For Moore-Penrose pseudo-inverse ginv()
-rankMatrix(matrix(c(1,1,2,2),nrow=2))
-rankMatrix(matrix(c(1,1,2,2,1,2),nrow=3))
-rankMatrix(matrix(c(1,1,2,0),nrow=2))
-rankMatrix(matrix(c(1,2,3,2,0,2),nrow=3))
+A = matrix(c(1,1,2,2),nrow=2)
+B = matrix(c(1,1,2,2,1,2),nrow=3)
+C = matrix(c(1,1,2,0),nrow=2)
+D = matrix(c(1,2,3,2,0,2),nrow=3)
+rankMatrix(A)
+rankMatrix(B)
+rankMatrix(C)
+rankMatrix(D)
 ```
+A: This is a square matrix. The matrix A can be reduced to
+$$A' = 
+\begin{bmatrix}
+1 & 0 \\
+1 & 0
+\end{bmatrix}$$
+The reduced form has one zero column. The two columns are linearly dependent and Rank(A)=1. Therefore, A is not full rank.
+
+B: This is a non-square matrix. The matrix B can be reduced to
+$$B' = 
+\begin{bmatrix}
+1 & 0 \\
+2 & 0 \\
+1 & 1
+\end{bmatrix}$$
+The reduced form does not have zero column. Therefore, two columns are linearly independent and Rank(B)=2. Thus, B is full rank.
+
+C: This is a square matrix. The matrix C can be reduced to
+$$C' = 
+\begin{bmatrix}
+1 & 0 \\
+2 & -2
+\end{bmatrix}$$
+The reduced form does not have zero column. Therefore, two columns are linearly independent and Rank(C)=2. Thus, C is full rank.
+
+
+D: This is a non-square matrix.. The matrix D can be reduced to
+$$D' = 
+\begin{bmatrix}
+1 & 0 & 0 \\
+2 & -4 & 0
+\end{bmatrix}$$
+
+The reduced form has one zero column. The two columns are linearly dependent and Rank(D)=2. Therefore, D is not full rank.
+
+
+### II Suppose that you wanted to build a model of the approval ratings of major party nominees for US president. You included the following 4 independent variables: Years holding elected office; Party; Gender; Indicator variable for being married to a former president. Does this violate the rank condition? Explain.
+
+Yes, this violates the rank condition.
+The assumption of full rank condition is violated if one independent vairable is perfectly linearly dependent on another independent variable, or an independent variable is perfectly jointly determined by other independent varaibles. In this context, the indicator variable for being married to a former president is perfectly linearly dependent on the gender of the nominees. Based on the history of US presidents, all past presidents are male and there is no cases of a man marrying to male US past presidents. Therefore, if an nominee is male (Gender == Male), the indicator variable for being married to a former president can only be 0 (not married to a former president). In other words, the indicator variable for being married to a former president is perfectly dependent on the gender. If both "gender" and "being married to a former president" are included as independet variables in the matrix X, the column of “gender” and the column of “being married to a former president” will be linearly dependent. Since there is perfect linear dependence between independent variables, this violates the rank condition in OLS regression.
+
+
+### III Give a different real-world example where the rank condition fails.
+
+One example is to compare the weight of secondary school student between Cedar Girls' Secondary School (girls school) and Victoria School (boys school). In this case, the dependent variable is the weight of a student, and the independent variables include a dummy variable indicating the student's school, gender, age, height etc. The independent variable school is defined as school == 0 if the student is from Cedar Girls' Secondary School, school == 1 if the student is from Victoria School. The independent variable gender is defined as gender == 0 if the student is female, gender ==  1 if the student is male.
+
+Because all the students from Cedar Girls' Secondary School are girls and all those from Victoria School are boys, the independent variable school is perfectly linearly dependent on another independent variable gender. If we include both "gender" and "school" as independet variables in the matrix X, the column of “school” and the column of “gender” will be linearly dependent. The assumption of full rank condition is violated if one independent vairable is perfectly linearly dependent on another independent variable. Therefore, the rank condition fails in this example.
+
+
 ## Q2
+
 ### I. Reproducing the plot
-```{r Q2}
+```{r Q2-1}
 df = read.csv("exercise_and_cholesterol.csv")
 old_df = df[df$Age=="Old",]
 young_df = df[df$Age=="Young",]
@@ -46,13 +128,22 @@ legend(6, 50, legend=c("Old only", "Young only","Combined data"),
 
 ### II. Are the three lines giving consistent or conflicting insights? Explain why.
 
+Yes, the three lines are giving conflicting insights. Below are the insights from the three lines:
+	- The regression line based on the combined data implies that there is a positive linear correlation between cholesterol and exercise.
+	- The regression line based on the data from only young people implies that there is a negative linear correlation between  cholesterol and exercise.
+	- The regression line based on the data from only old people implies that there is a negative linear correlation between  cholesterol and exercise.
+	- Old people tend to have higher cholesterol level than the young. This can be implied from the regressin line of old only data being higher than the regression line of young only data.
 
-The 3 lines are giving conflicting insights. The young and old only lines suggest that Cholesterol and Exercise has negative association while the combined data suggesting positive association. The inconsistency occurs because Cholesterol is positively associated with Age so that the two groups are different. Furthermore, the old only group's exercise data is in the range between 13 - 18 while the young only group's data ranging from 7 - 12.
+The insights drawn from subgroups are different from that drawn from the combined data. This is because age is another factor affecting the level of cholesterol as well as the amount of exercise. To be sopecific, age is positively correlated with cholestrol level. The conflict in insights can be due to omitted variable bias in the model of Cholesterol~Exercise.
+
+
 
 ### III. Can you propose an alternative estimation using all the data in order to obtain the same insight as the two separate regressions using only the old or the young people?
 
-[Replace this with answer here]
-```{r Q2.3 Test experiemt}
+An alternative estimation is to include age as an independent variable in the model and make it a dummy variable: age = 1 if one is young, age = 0 if one is old. Run a linear regression of cholesterol against age and exercise using all the data. This gives us three regression lines with similar trend as shown on the graph below. Now, the same insghts can be generated.
+
+In addition, by running the linear regression using the model Cholesterol~Exercise + Age, the coefficient of the independent variable exercise is -0.9384, which suggests a negative correlation between exercise and cholesterol of a person i.e. the increase in the amount of exercise by 1 unit results in a decrease in the cholesterol level of that particular person by 0.9384 units. Also, the coefficient of the independent variable Age is -9.8511, which suggests that the young has a lower cholesterol level than old people by 9.8511 units in average. Then, this further proves that we obtain the same insight as the two separate regressions.
+```{r Q2-3}
 plot(young_df$Cholesterol ~ young_df$Exercise,col="blue",pch=17,ylim=c(35,50),xlim=c(6,18),xlab="",ylab="")
 par(new=TRUE)
 plot(old_df$Cholesterol ~ old_df$Exercise,col="red",pch=20,ylim=c(35,50),xlim=c(6,18),xlab="Exercise",ylab="Cholesterol")
@@ -108,6 +199,7 @@ legend(-3,8,legend=c("lm()", "Matrix algebra"),col=c("green","red"),lty=c("dashe
 $$\hat{\beta} = argmin_{\beta} \sum_{i=1,...,n}(y_i - \beta_0 - \beta_1 \times x_i)^2 \\
 \implies
 \hat{y} = 0.734 + 1.954 x$$
+
 ```{r Q3.1.d1}
 X = cbind(rep(1,1000), x)
 Y = y
@@ -119,12 +211,11 @@ fun = function(beta) {
 optim(runif(2),fun) # \beta0 = 0.734, \beta1 = 1.954
 ```
 ### Use formula for 1 variable regression: 
-$$
-\hat{\beta_1} = \frac{Cov(x_i,y_i)}{Var(x_i)} \\
+$$\hat{\beta_1} = \frac{Cov(x_i,y_i)}{Var(x_i)} \\
 \hat{\beta_0} = \bar{y} - \hat{\beta_1} \bar{x} \\
 \implies
-\hat{y} = 0.734 + 1.954 
-$$
+\hat{y} = 0.734 + 1.954 $$
+
 ```{r Q3.1.d2}
 beta1 = cov(x,y)/var(x)
 beta0 = mean(y) - beta1*mean(x)
@@ -245,8 +336,8 @@ x_n = x_0 (1+r)^n + P \frac{1-(1+r)^n}{r}$$
 
 Given: $$x_0 = 10000, x_{60} = 0, P = 250 \\
 \implies
-r = 0.01439478
-$$
+r = 0.01439478$$
+
 ```{r Numertical methods} 
 library(numDeriv)
 
@@ -330,14 +421,16 @@ lines(1:length(sol3$history),sol3$history,type="b",pch=20,col="orange")
 ```
 
 ## Q5
+### I. Use inversion sampling to simulate 10. random draws for market condition x.
+
 Find the inverse function of X
 $$f(x)=3x^2 \cdot I(0,1) \\
 \implies 
-F(x) = \int_0^x f(x)dx = x^3,x \in [0,1] \\
+F(x) = \int_0^x f(x)dx = x^3,x \in (0,1) \\
 \implies
-x = F^{-1}(u) = u^{1/3}
-$$
-```{r Q5.1}
+x = F^{-1}(u) = u^{1/3}$$
+
+```{r Q5-1}
 set.seed(37)
 
 invSampling = function(N) {
@@ -347,11 +440,13 @@ invSampling = function(N) {
 
 hist(invSampling(10^6))
 ```
+## II. Calculate the expected returns using your draws. Plot the expected returns for y ∈
+(0,1).
 
 Expected return given y:
 $$E[p(x,y)|y] = \int_0^1 p(x,y)f(x) dx$$
 
-```{r Q5.2}
+```{r Q5-2}
 set.seed(37)
 
 revenue = function(x,y) {
@@ -370,18 +465,18 @@ expectedReturn = function(y) {
 }
 ```
 
-```{r Q5_run_Simulation}
+```{r Q5-2 run simulation}
 # take y from 0 to 1 with step 0.01
 y = seq(0,1,0.01)
 #returns = sapply(y,expectedReturn)
 ```
-```{r plot}
-plot(returns ~ y, type="l")
-abline(0,0)
+```{r Q5-2 plot}
+#plot(returns ~ y, type="l")
+#abline(0,0)
 ```
-
-Use R's optim() to minimize objective function:
-```{r find_optim_y}
+III. Compute the optimal investment y∗.
+$$y^* = argmax\ E[p(x,y)|y],\ y \in (0,1)$$
+```{r Q5-3}
 newton_optim = function(f, x0, tol=1e-10, n=1000, maximize=FALSE) {
   if(maximize) {
     f = function(x) {-1*f(x)}
@@ -402,8 +497,8 @@ newton_optim = function(f, x0, tol=1e-10, n=1000, maximize=FALSE) {
   return(list(`optim x`=x1, `iterations`=i, `history`=history))
 }
 
-optimize(function(y){-1*expectedReturn(y)},c(0,1))
+#optimize(function(y){-1*expectedReturn(y)},c(0,1))
 # 0.4637619
-newton_optim(expectedReturn, 0)
+#newton_optim(expectedReturn, 0)
 # 0.4637619
 ```
