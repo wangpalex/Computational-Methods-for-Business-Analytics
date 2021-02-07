@@ -161,8 +161,10 @@ legend(6, 50, legend=c("Old only", "Young only","Combined data"),
 
 ## Q3
 
+### I. Generate a random sample with 1000 observations. Using the simulated data and the following four computational methods to estimate the value of the model parameters. Do the four methods give the same estimates?
+
 ### Data generation
-```{r Q3.1.a}
+```{r}
 set.seed(37)
 # Data generation
 x = rnorm(1000) # Sample 1000 points from N(0, 1)
@@ -170,20 +172,24 @@ e = rnorm(1000)
 y = 0.7 + 2*x + e
 plot(y ~ x)
 ```
-### Use R's lm() function: 
+
+### a. Use R native function lm()
 $$\hat{y} = 0.734 + 1.954 x$$
-```{r Q3.1.b}
+```{r}
 # Use lm()
 model = lm(y ~ x)
 summary(model)
 # y = 0.734 + 1.954 * x
 ```
-### Use matrix algebra: 
+Using lm(), the beta 0 estimate is 0.73407 and the beta 1 estimate is 1.95394.
+
+
+### b. Use matrix algebra
 $$\hat{\beta} = (X^T X)^{-1} X^T Y \\
 \implies
 \hat{y} = 0.734 + 1.954 x$$
 
-```{r Q3.1.c}
+```{r}
 # Use matrix algebra
 X = cbind(rep(1,1000),x) # Add bias(constant for intercept) to data matrix
 Y = y
@@ -195,7 +201,11 @@ abline(model$coefficients[1],model$coefficients[2],col="green")
 abline(beta_h[1],beta_h[2],col="red",lty="dashed")
 legend(-3,8,legend=c("lm()", "Matrix algebra"),col=c("green","red"),lty=c("dashed","dashed"))
 ```
-### Use R's optim(): 
+Using matrix algebra, the beta 0 estimate is 0.73407 and the beta 1 estimate is 1.95394.
+
+
+
+### c. Use R's optim()
 $$\hat{\beta} = argmin_{\beta} \sum_{i=1,...,n}(y_i - \beta_0 - \beta_1 \times x_i)^2 \\
 \implies
 \hat{y} = 0.734 + 1.954 x$$
@@ -210,18 +220,30 @@ fun = function(beta) {
 # Start optimization with random initialization
 optim(runif(2),fun) # \beta0 = 0.734, \beta1 = 1.954
 ```
-### Use formula for 1 variable regression: 
-$$\hat{\beta_1} = \frac{Cov(x_i,y_i)}{Var(x_i)} \\
+Using R's optim(), the beta 0 estimate is 0.73406 and the beta 1 estimate is 1.95382.
+
+
+### d. Use formula for 1 variable regression: 
+$$
+\hat{\beta_1} = \frac{Cov(x_i,y_i)}{Var(x_i)} \\
 \hat{\beta_0} = \bar{y} - \hat{\beta_1} \bar{x} \\
 \implies
-\hat{y} = 0.734 + 1.954 $$
-
+\hat{y} = 0.734 + 1.954 
+$$
 ```{r Q3.1.d2}
 beta1 = cov(x,y)/var(x)
 beta0 = mean(y) - beta1*mean(x)
 beta0 # 0.734
 beta1 # 1.954
 ```
+Using formula for 1 variable regression, the beta 0 estimate is 0.73407 and the beta 1 estimate is 1.95394.
+
+Based on the values of estimates from all four methods, all four methods give the same estimates.
+
+
+### II. Now generate S = 10000 independent random samples each with N observations. For each of the random samples, run an OLS regression. Record all the S estimates on x.
+
+### Plot the distributions when N=25, 100. Compare the means and variances of the distributions. Are they different? Do they follow normal distributions?
 
 Check distribution of $\hat{\beta_1}$
 ```{r Q3.2.1.a}
@@ -259,6 +281,7 @@ ad.test(res1) # p-value = 2.064e-08
 qqnorm(res2)
 qqline(res2)
 ```
+According to the calculations and plots above, res1(with N=25) has a mean of 2.002271 and res2(with N=100) has a mean of 1.998513, also res1 has a variance of 0.04465469 while res2 has a variance of 0.01046778. We can conclude that mean values and variance values differ at around 1e-03 level. Moreover, by running two-sided t-test for the two distribution: res1 and res2, we cannot reject null hypothesis from p-value=0.1095 that res1 and res2 are not statistically different. By running Anderson-Darling normality test, we can reject Anderson-Darling test null hypothesis with p-value=2.064e-08 which indicates non-normal distribution for both res1 and res2.
 
 ### Use uniformly distributed error
 ```{r Q3.2.2.b}
@@ -293,6 +316,7 @@ ad.test(res1) # p-value = 0.4207
 qqnorm(res2)
 qqline(res2)
 ```
+By using uniform distribution, res1 and res2 are not statistically different since null hypothesis cannot be rejected by p-value=0.3446 in the two-sided t-test. However, Anderson-Darling normality test give the p-value=0.4207 for both res1 and res2, which indicates the acceptance of null hypothesis that res1 and res2 follow normal distribution.
 
 ### Use Cauchy distributed error
 ```{r Q3.2.2.c}
@@ -327,6 +351,8 @@ ad.test(res1) # p-value = 2.2e-16
 qqnorm(res2)
 qqline(res2)
 ```
+By using uniform distribution, res1 and res2 are not statistically different since null hypothesis cannot be rejected by p-value=0.05461 in the two-sided t-test. However, since the p-value is very closed to 0.05, we can still reject null hypothesis at 10% significance level. Taking a detailed look into the output result, the difference between two mean values and 2 variance values are bigger than the previous 2 method. Furthermore, Anderson-Darling normality test give the p-value=2.2e-16 for both res1 and res2, which indicates the rejection of null hypothesis that res1 and res2 are not follow normal distribution.
+
 
 ## Q4
 Recurrent formula of compound interest rate:
@@ -485,7 +511,7 @@ y = seq(0,1,0.01)
 #plot(returns ~ y, type="l")
 #abline(0,0)
 ```
-III. Compute the optimal investment y∗.
+## III. Compute the optimal investment y∗.
 $$y^* = argmax\ E[p(x,y)|y],\ y \in (0,1)$$
 ```{r Q5-3}
 newton_optim = function(f, x0, tol=1e-10, n=1000, maximize=FALSE) {
@@ -508,8 +534,8 @@ newton_optim = function(f, x0, tol=1e-10, n=1000, maximize=FALSE) {
   return(list(`optim x`=x1, `iterations`=i, `history`=history))
 }
 
-#optimize(function(y){-1*expectedReturn(y)},c(0,1))
+# optimize(function(y){-1*expectedReturn(y)},c(0,1))
 # 0.4637619
-#newton_optim(expectedReturn, 0)
+# newton_optim(expectedReturn, 0)
 # 0.4637619
 ```
