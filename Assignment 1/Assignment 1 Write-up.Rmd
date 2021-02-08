@@ -298,30 +298,31 @@ vec_loop = Vectorize(single_loop)
 
 
 res1 = vec_loop(rep(25,S))
-hist(res1)
 res2 = vec_loop(rep(100,S))
-hist(res2)
+
 mean(res1) # 2.002271
 mean(res2) # 1.998513
 var(res1) # 0.04465469
 var(res2) # 0.01046778
 t.test(res1, res2, alternative = "two.sided", var.equal = FALSE) # p-value = 0.1095
 
-# Test normality
-library(nortest)
-#Anderson-Darling normality test
-ad.test(res1) # p-value = 2.064e-08
-qqnorm(res1)
-qqline(res1)
-
-ad.test(res1) # p-value = 2.064e-08
-qqnorm(res2)
-qqline(res2)
 ```
 
 ```{r plot density of beta1}
-plot_density = function(res1, res2) {
+normality_check = function(res1, res2) {
+  # Test normality
+  library(nortest)
+  #Anderson-Darling normality test
+  print(ad.test(res1)) # p-value = 2.064e-08
+  qqnorm(res1)
+  qqline(res1)
+  print(ad.test(res1)) # p-value = 2.064e-08
+  qqnorm(res2)
+  qqline(res2)
+  
+  # Plot density
   # Call lm_reg and do the computation 
+  library(doParallel)
   cores=detectCores()
   cl <- parallel::makeCluster(2, setup_strategy = "sequential")
   registerDoParallel(cl)
@@ -349,8 +350,9 @@ plot_density = function(res1, res2) {
                   "distribution of 100000 betas with N=25"),
          col=c("blue","red","green"),
          lty=c(2,1,1),cex=0.8,bty = "n")
+  
 }
-plot_density(res1,res2)
+normality_check(res1,res2)
 ```
 According to the calculations and plots above, res1(with N=25) has a mean of 2.002271 and res2(with N=100) has a mean of 1.998513, also res1 has a variance of 0.04465469 while res2 has a variance of 0.01046778. We can conclude that mean values and variance values differ at around 1e-03 level. Moreover, by running two-sided t-test for the two distribution: res1 and res2, we cannot reject null hypothesis from p-value=0.1095 that res1 and res2 are not statistically different. By running Anderson-Darling normality test, we can reject Anderson-Darling test null hypothesis with p-value=2.064e-08 which indicates non-normal distribution for both res1 and res2.
 
@@ -369,25 +371,15 @@ single_loop = function(N) {
 vec_loop = Vectorize(single_loop)
 
 res1 = vec_loop(rep(25,S))
-hist(res1)
 res2 = vec_loop(rep(100,S))
-hist(res2)
+
 mean(res1) # 1.999372
 mean(res2) # 2.000016
 var(res1) # 0.003772373
 var(res2) # 0.0008630136
 t.test(res1, res2, alternative = "two.sided", var.equal = FALSE) # p-value = 0.3446
 
-#Anderson-Darling normality test
-ad.test(res1) # p-value = 0.4207
-qqnorm(res1)
-qqline(res1)
-
-ad.test(res1) # p-value = 0.4207
-qqnorm(res2)
-qqline(res2)
-
-plot_density(res1,res2)
+normality_check(res1,res2)
 ```
 By using uniform distribution, res1 and res2 are not statistically different since null hypothesis cannot be rejected by p-value=0.3446 in the two-sided t-test. However, Anderson-Darling normality test give the p-value=0.4207 for both res1 and res2, which indicates the acceptance of null hypothesis that res1 and res2 follow normal distribution.
 
@@ -406,25 +398,15 @@ single_loop = function(N) {
 vec_loop = Vectorize(single_loop)
 
 res1 = vec_loop(rep(25,S))
-hist(res1)
 res2 = vec_loop(rep(100,S))
-hist(res2)
+
 mean(res1) # 1.907382x
 mean(res2) # -1.599096
 var(res1) # 3427.213
 var(res2) # 29851.75
 t.test(res1, res2, alternative = "two.sided", var.equal = FALSE) # p-value = 0.05461
 
-#Anderson-Darling normality test
-ad.test(res1) # p-value = 2.2e-16
-qqnorm(res1)
-qqline(res1)
-
-ad.test(res1) # p-value = 2.2e-16
-qqnorm(res2)
-qqline(res2)
-
-plot_density(res1,res2)
+normality_check(res1,res2)
 ```
 By using uniform distribution, res1 and res2 are not statistically different since null hypothesis cannot be rejected by p-value=0.05461 in the two-sided t-test. However, since the p-value is very closed to 0.05, we can still reject null hypothesis at 10% significance level. Taking a detailed look into the output result, the difference between two mean values and 2 variance values are bigger than the previous 2 method. Furthermore, Anderson-Darling normality test give the p-value=2.2e-16 for both res1 and res2, which indicates the rejection of null hypothesis that res1 and res2 are not follow normal distribution.
 
