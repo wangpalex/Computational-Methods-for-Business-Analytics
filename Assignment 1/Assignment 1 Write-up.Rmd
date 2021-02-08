@@ -1,11 +1,14 @@
 ---
 title: "Assignment 1 Submission"
 author:
-  - Gao Haochun A0194525Y
-  - Ge Siqi A0194550A
-  - Wang Pei A0194486M
-  - Wei Yifei A0203451W
-output: pdf_document
+- Gao Haochun A0194525Y
+- Ge Siqi A0194550A
+- Wang Pei A0194486M
+- Wei Yifei A0203451W
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
 ---
 
 ```{r setup, include=FALSE}
@@ -15,37 +18,16 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ### I. Which of the 4 data violate(s) the rank condition in OLS regression?
 
-$$\begin{equation*}
-A = 
-\begin{bmatrix}
-1 & 1 \\
-2 & 2
-\end{bmatrix}
+The full assumption can be denoted by rank(X) = k, where X is an n x k matrix, n observations, k independent variables. Thus, full rank assumption can be interpreted as: all the columns are linearly independent. In other words, all independent variables (including the constant) are linearly independent.
 
-B = 
-\begin{bmatrix}
-1 & 1 \\
-2 & 2 \\
-1 & 2
-\end{bmatrix}
-
-C = 
-\begin{bmatrix}
-1 & 1 \\
-2 & 0
-\end{bmatrix}
-D = 
-\begin{bmatrix}
-1 & 2 & 3 \\
-2 & 0 & 2
-\end{bmatrix}
-\end{equation*}$$
-
-The full assumption can be denoted by rank(X)=k, where X is a n*k matrix, n observations, k independent variables.Thus, full rank assumption can be interpreted as: all the columns are linearly independent. In other words, all independent variables (including the constant) are linearly independent.
-
-```{r Q1-1}
+```{r Load Packages}
 library(Matrix) # Matrix operations
 library(MASS) # For Moore-Penrose pseudo-inverse ginv()
+library(doParallel)
+library(nortest)
+```
+
+```{r Q1-1}
 A = matrix(c(1,1,2,2),nrow=2)
 B = matrix(c(1,1,2,2,1,2),nrow=3)
 C = matrix(c(1,1,2,0),nrow=2)
@@ -55,53 +37,34 @@ rankMatrix(B)
 rankMatrix(C)
 rankMatrix(D)
 ```
-A: This is a square matrix. The matrix A can be reduced to
-$$A' = 
-\begin{bmatrix}
-1 & 0 \\
-1 & 0
-\end{bmatrix}$$
-The reduced form has one zero column. The two columns are linearly dependent and Rank(A)=1. Therefore, A is not full rank.
+A: 
+The reduced form has one zero column. The two columns are linearly dependent and $Rank(A) = 1 \neq 2$. Therefore, A is not full column rank and A violates rank condition in OLS regression.
 
-B: This is a non-square matrix. The matrix B can be reduced to
-$$B' = 
-\begin{bmatrix}
-1 & 0 \\
-2 & 0 \\
-1 & 1
-\end{bmatrix}$$
-The reduced form does not have zero column. Therefore, two columns are linearly independent and Rank(B)=2. Thus, B is full rank.
+B: 
+The reduced form does not have zero column. Therefore, two columns are linearly independent and $Rank(B) = 2$. Thus, B is full column rank and does not violate rank condition in OLS regression.
 
-C: This is a square matrix. The matrix C can be reduced to
-$$C' = 
-\begin{bmatrix}
-1 & 0 \\
-2 & -2
-\end{bmatrix}$$
-The reduced form does not have zero column. Therefore, two columns are linearly independent and Rank(C)=2. Thus, C is full rank.
+C: 
+The reduced form does not have zero column. Therefore, two columns are linearly independent and $Rank(C) = 2$. Thus, C is full column rank and does not violate rank condition in OLS regression.
 
 
-D: This is a non-square matrix.. The matrix D can be reduced to
-$$D' = 
-\begin{bmatrix}
-1 & 0 & 0 \\
-2 & -4 & 0
-\end{bmatrix}$$
-
-The reduced form has one zero column. The two columns are linearly dependent and Rank(D)=2. Therefore, D is not full rank.
+D: 
+The reduced form has one zero column. The two columns are linearly dependent and $Rank(D) = 2$. Therefore, D is not full column rank and violates rank condition in OLS regression.
 
 
-### II Suppose that you wanted to build a model of the approval ratings of major party nominees for US president. You included the following 4 independent variables: Years holding elected office; Party; Gender; Indicator variable for being married to a former president. Does this violate the rank condition? Explain.
+### II. Suppose that you wanted to build a model of the approval ratings of major party nominees for US president. You included the following 4 independent variables: Years holding elected office; Party; Gender; Indicator variable for being married to a former president. Does this violate the rank condition? Explain.
 
 Yes, this violates the rank condition.
-The assumption of full rank condition is violated if one independent vairable is perfectly linearly dependent on another independent variable, or an independent variable is perfectly jointly determined by other independent varaibles. In this context, the indicator variable for being married to a former president is perfectly linearly dependent on the gender of the nominees. Based on the history of US presidents, all past presidents are male and there is no cases of a man marrying to male US past presidents. Therefore, if an nominee is male (Gender == Male), the indicator variable for being married to a former president can only be 0 (not married to a former president). In other words, the indicator variable for being married to a former president is perfectly dependent on the gender. If both "gender" and "being married to a former president" are included as independet variables in the matrix X, the column of “gender” and the column of “being married to a former president” will be linearly dependent. Since there is perfect linear dependence between independent variables, this violates the rank condition in OLS regression.
+
+The assumption of full rank condition is violated if one independent variable is perfectly linearly dependent on another independent variable, or an independent variable is perfectly jointly determined by other independent variables. 
+
+In this context, the indicator variable for being married to a former president is perfectly linearly dependent on the gender of the nominees. Based on the history of US presidents, all past presidents are male and there is no cases of a man marrying to male US past presidents. Therefore, if an nominee is male (Gender = Male), the indicator variable for being married to a former president can only be 0 (not married to a former president). In other words, the indicator variable for being married to a former president is perfectly dependent on the gender. If both "gender" and "being married to a former president" are included as independent variables in the matrix X, the column of “gender” and the column of “being married to a former president” will be linearly dependent. Since there is perfect linear dependence between independent variables, this violates the rank condition in OLS regression.
 
 
-### III Give a different real-world example where the rank condition fails.
+### III. Give a different real-world example where the rank condition fails.
 
-One example is to compare the weight of secondary school student between Cedar Girls' Secondary School (girls school) and Victoria School (boys school). In this case, the dependent variable is the weight of a student, and the independent variables include a dummy variable indicating the student's school, gender, age, height etc. The independent variable school is defined as school == 0 if the student is from Cedar Girls' Secondary School, school == 1 if the student is from Victoria School. The independent variable gender is defined as gender == 0 if the student is female, gender ==  1 if the student is male.
+One example is to compare the weight of secondary school student between Cedar Girls' Secondary School (girls school) and Victoria School (boys school). In this case, the dependent variable is the weight of a student, and the independent variables include a dummy variable indicating the student's school, gender, age, height etc. The independent variable school is defined as school = 0 if the student is from Cedar Girls' Secondary School, school = 1 if the student is from Victoria School. The independent variable gender is defined as gender = 0 if the student is female, gender =  1 if the student is male.
 
-Because all the students from Cedar Girls' Secondary School are girls and all those from Victoria School are boys, the independent variable school is perfectly linearly dependent on another independent variable gender. If we include both "gender" and "school" as independet variables in the matrix X, the column of “school” and the column of “gender” will be linearly dependent. The assumption of full rank condition is violated if one independent vairable is perfectly linearly dependent on another independent variable. Therefore, the rank condition fails in this example.
+Because all the students from Cedar Girls' Secondary School are girls and all those from Victoria School are boys, the independent variable school is perfectly linearly dependent on another independent variable gender. If we include both "gender" and "school" as independent variables in the matrix X, the column of “school” and the column of “gender” will be linearly dependent. The assumption of full rank condition is violated if one independent variable is perfectly linearly dependent on another independent variable. Therefore, the rank condition fails in this example.
 
 
 ## Q2
@@ -129,24 +92,30 @@ legend(6, 50, legend=c("Old only", "Young only","Combined data"),
 ### II. Are the three lines giving consistent or conflicting insights? Explain why.
 
 Yes, the three lines are giving conflicting insights. Below are the insights from the three lines:
-	- The regression line based on the combined data implies that there is a positive linear correlation between cholesterol and exercise.
-	- The regression line based on the data from only young people implies that there is a negative linear correlation between  cholesterol and exercise.
-	- The regression line based on the data from only old people implies that there is a negative linear correlation between  cholesterol and exercise.
-	- Old people tend to have higher cholesterol level than the young. This can be implied from the regressin line of old only data being higher than the regression line of young only data.
 
-The insights drawn from subgroups are different from that drawn from the combined data. This is because age is another factor affecting the level of cholesterol as well as the amount of exercise. To be sopecific, age is positively correlated with cholestrol level. The conflict in insights can be due to omitted variable bias in the model of Cholesterol~Exercise.
+- The regression line based on the combined data implies that there is a positive linear correlation between cholesterol and exercise.
+
+- The regression line based on the data from only young people implies that there is a negative linear correlation between  cholesterol and exercise.
+
+- The regression line based on the data from only old people implies that there is a negative linear correlation between  cholesterol and exercise.
+
+- Old people tend to have higher cholesterol level than the young. This can be implied from the regression line of old only data being higher than the regression line of young only data.
+
+The insights drawn from subgroups are different from that drawn from the combined data. This is because age is another factor affecting the level of cholesterol as well as the amount of exercise. To be specific, age is positively correlated with cholesterol level. The conflict in insights can be due to omitted variable bias in the model of ***Cholesterol ~ Exercise***.
 
 
 
 ### III. Can you propose an alternative estimation using all the data in order to obtain the same insight as the two separate regressions using only the old or the young people?
 
-An alternative estimation is to include age as an independent variable in the model and make it a dummy variable: age = 1 if one is young, age = 0 if one is old. Run a linear regression of cholesterol against age and exercise using all the data. This gives us three regression lines with similar trend as shown on the graph below. Now, the same insghts can be generated.
+An alternative estimation is to include age as an independent variable in the model and make it a dummy variable: age = 1 if one is young, age = 0 if one is old. Run a linear regression of cholesterol against age and exercise using all the data. This gives us three regression lines with similar trend as shown on the graph below. Now, the same insights can be generated.
 
-In addition, by running the linear regression using the model Cholesterol~Exercise + Age, the coefficient of the independent variable exercise is -0.9384, which suggests a negative correlation between exercise and cholesterol of a person i.e. the increase in the amount of exercise by 1 unit results in a decrease in the cholesterol level of that particular person by 0.9384 units. Also, the coefficient of the independent variable Age is -9.8511, which suggests that the young has a lower cholesterol level than old people by 9.8511 units in average. Then, this further proves that we obtain the same insight as the two separate regressions.
+In addition, by running the linear regression using the model ***Cholesterol ~ Exercise + Age***, the coefficient of the independent variable exercise is -0.9384, which suggests a negative correlation between exercise and cholesterol of a person i.e. the increase in the amount of exercise by 1 unit results in a decrease in the cholesterol level of that particular person by 0.9384 units in average. Also, the coefficient of the independent variable Age is -9.8511, which suggests that the young has a lower cholesterol level than old people by 9.8511 units in average. Then, this further proves that we obtain the same insight as the two separate regressions.
 ```{r Q2-3}
-plot(young_df$Cholesterol ~ young_df$Exercise,col="blue",pch=17,ylim=c(35,50),xlim=c(6,18),xlab="",ylab="")
+plot(young_df$Cholesterol ~ young_df$Exercise,col="blue",pch=17,
+     ylim=c(35,50),xlim=c(6,18),xlab="",ylab="")
 par(new=TRUE)
-plot(old_df$Cholesterol ~ old_df$Exercise,col="red",pch=20,ylim=c(35,50),xlim=c(6,18),xlab="Exercise",ylab="Cholesterol")
+plot(old_df$Cholesterol ~ old_df$Exercise,col="red",pch=20,
+     ylim=c(35,50),xlim=c(6,18),xlab="Exercise",ylab="Cholesterol")
 
 all_model = lm(Cholesterol ~ Exercise + Age, data=df)
 young_model = lm(Cholesterol ~ Exercise, data=young_df)
@@ -181,7 +150,7 @@ model = lm(y ~ x)
 summary(model)
 # y = 0.734 + 1.954 * x
 ```
-Using lm(), the beta 0 estimate is 0.73407 and the beta 1 estimate is 1.95394.
+Using lm(), $\hat{\beta_0}$ is 0.73407 and $\hat{\beta_1}$ is 1.95394.
 
 
 ### b. Use matrix algebra
@@ -202,8 +171,8 @@ abline(model$coefficients[1],model$coefficients[2],col="green")
 abline(beta_h[1],beta_h[2],col="red",lty="dashed")
 legend(-3,8,legend=c("lm()", "Matrix algebra"),col=c("green","red"),lty=c("dashed","dashed"))
 ```
-Using matrix algebra, the beta 0 estimate is 0.73407 and the beta 1 estimate is 1.95394.
 
+Using matrix algebra, $\hat{\beta_0}$ is 0.73407 and $\hat{\beta_1}$ is 1.95394.
 
 
 ### c. Use R's optim()
@@ -221,7 +190,7 @@ fun = function(beta) {
 # Start optimization with random initialization
 optim(runif(2),fun) # \beta0 = 0.734, \beta1 = 1.954
 ```
-Using R's optim(), the beta 0 estimate is 0.73406 and the beta 1 estimate is 1.95382.
+Using R's optim(), $\hat{\beta_0}$ is 0.73406 and $\hat{\beta_1}$ is 1.95382.
 
 
 ### d. Use formula for 1 variable regression: 
@@ -229,7 +198,7 @@ $$
 \hat{\beta_1} = \frac{Cov(x_i,y_i)}{Var(x_i)} \\
 \hat{\beta_0} = \bar{y} - \hat{\beta_1} \bar{x} \\
 \implies
-\hat{y} = 0.734 + 1.954 
+\hat{y} = 0.734 + 1.954x
 $$
 ```{r Q3.1.d2}
 beta1 = cov(x,y)/var(x)
@@ -237,18 +206,17 @@ beta0 = mean(y) - beta1*mean(x)
 beta0 # 0.734
 beta1 # 1.954
 ```
-Using formula for 1 variable regression, the beta 0 estimate is 0.73407 and the beta 1 estimate is 1.95394.
+Using formula for 1 variable regression, $\hat{\beta_0}$ is 0.73407 and $\hat{\beta_1}$ is 1.95394.
 
-Based on the values of estimates from all four methods, all four methods give the same estimates.
+#### In conclusion, based on the values of estimates from all four methods, all four methods give the same estimates.
 
 
 ### II. Now generate S = 10000 independent random samples each with N observations. For each of the random samples, run an OLS regression. Record all the S estimates on x.
 
 ### Plot the distributions when N=25, 100. Compare the means and variances of the distributions. Are they different? Do they follow normal distributions?
 
-### Use uniformly distributed error
+### a. 
 ```{r Q3.2.1.a}
-library(MASS)
 set.seed(37)
 S = 10000
 single_loop = function(N) {
@@ -265,37 +233,29 @@ vec_loop = Vectorize(single_loop)
 res1 = vec_loop(rep(25,S))
 res2 = vec_loop(rep(100,S))
 
-mean(res1) # 2.002271
-mean(res2) # 1.998513
-var(res1) # 0.04465469
-var(res2) # 0.01046778
+c(mean(res1),mean(res2)) # 2.002271,  1.998513
+c(var(res1),var(res2)) # 0.04465469,  0.01046778
+
+# Assume normality, do var test
 var.test(res1, res2, alternative = "two.sided") # p-value < 2.2e-16
 t.test(res1, res2, alternative = "two.sided", var.equal = FALSE) # p-value = 0.1095
 
-
 ```
-According to the calculations and plots above, res1 (with N=25) has a mean of 2.002271 and res2 (with N=100) has a mean of 1.998513. We can conclude that mean differs little at about 1e-03 level. Moreover, by running two-sided t-test of res1 and res2, we get p-value=0.1095 > 0.05, thus we cannot reject null hypothesis that the mean of two groups are statistically equal at 5% significance level. Therefore, we may conclude that the mean of two results i.e. res1 and res2 are approximately equal. 
-
-Regarding the variance, res1 has a variance of 0.04465469 while res2 has a variance of 0.01046778. By comparing the varince of two results which differs at about 1e-02 level and differs by 0.03418691, we may conclude that the variance is different. Further, through F.test (assuming the data is normally distributed), we get p-value < 2.2e-16 < 0.05, thus we can reject the null hypothesis that the variance of two groups are statistically equal i.e. the variance of res1 and res 2 are statistically different at 5% significance level. Also, we can conclude that the estimated beta 1 with greater sample size N=100 has a lower variance that the estimated beta 1 with smaller sample size N=25. A larger sample size gives a less spread-out result i.e. data with smaller dispersion.
-
-By observing the QQ-plot, many points near two ends fall away from the straight line. Also, by running Anderson-Darling normality test, the p-value for both cases = 2.064e-08 < 0.05, thus we should reject Anderson-Darling test null hypothesis at 5% significance level and conclude that both the estimated beta 1 in res1 and res2 follows non-normal distribution.
 
 Check distribution and normality of $\hat{\beta_1}$
 ```{r plot density of beta1}
 normality_check = function(res1, res2) {
   # Test normality
-  library(nortest)
   #Anderson-Darling normality test
-  print(ad.test(res1)) # p-value = 2.064e-08
+  print(ad.test(res1))
+  print(ad.test(res2))
   qqnorm(res1)
   qqline(res1)
-  print(ad.test(res1)) # p-value = 2.064e-08
   qqnorm(res2)
   qqline(res2)
   
   # Plot density
   # Call lm_reg and do the computation 
-  library(doParallel)
   cores=detectCores()
   cl <- parallel::makeCluster(2, setup_strategy = "sequential")
   registerDoParallel(cl)
@@ -303,15 +263,18 @@ normality_check = function(res1, res2) {
   
   # Plot the distribution of beta1^hat and normal distribution
   x = seq(min(res1), max(res1), length=100)
-  hx = dnorm(x,mean=mean(res1),sd=sd(res1))
+  hx1 = dnorm(x,mean=mean(res1),sd=sd(res1))
+  hx2 = dnorm(x,mean=mean(res2),sd=sd(res2))
   res1_hist=hist(res1, breaks = 10^2, plot=FALSE)
   res2_hist=hist(res2, breaks = 10^2, plot=FALSE)
   
-  plot(x,hx,xlab="",ylab="",main="",
-       col="blue",lty=2,type="l",lwd=1,ylim=c(0,max(c(res1_hist$density, res2_hist$density))))
+  plot(x,hx1,xlab="",ylab="",main="",
+       col="blue",lty=2,type="l",lwd=1,
+       ylim=c(0,max(c(res1_hist$density, res2_hist$density))))
   mtext("beta^hat",side=1,line=2)
   mtext("density",side=2, line=2)
   
+  lines(x,hx2,col="blue",lty=2,type="l",lwd=1)
   lines(res1_hist$mids,res1_hist$density,
         col="red",lty=1,lwd=1)
   lines(res2_hist$mids,res2_hist$density,
@@ -327,9 +290,14 @@ normality_check = function(res1, res2) {
 }
 normality_check(res1,res2)
 ```
-According to the calculations and plots above, res1(with N=25) has a mean of 2.002271 and res2(with N=100) has a mean of 1.998513, also res1 has a variance of 0.04465469 while res2 has a variance of 0.01046778. We can conclude that mean values and variance values differ at around 1e-03 level. Moreover, by running two-sided t-test for the two distribution: res1 and res2, we cannot reject null hypothesis from p-value=0.1095 that res1 and res2 are not statistically different. By running Anderson-Darling normality test, we can reject Anderson-Darling test null hypothesis with p-value=2.064e-08 which indicates non-normal distribution for both res1 and res2.
 
-### Use uniformly distributed error
+According to the calculations and plots above, res1 (N=25) has a mean of 2.002271 and res2 (N=100) has a mean of 1.998513. We can conclude that mean differs little at about 1e-03 level. Moreover, by running two-sided t-test of res1 and res2, we get p-value = 0.1095 > 0.05, thus we cannot reject null hypothesis that the mean of two groups are statistically equal at 5% significance level. Therefore, we may conclude that the mean of two results i.e. res1 and res2 are approximately equal. 
+
+Regarding the variance, res1 has a variance of 0.04465469 while res2 has a variance of 0.01046778. By comparing the variance of two results which differs at about 1e-02 level and differs by 0.03418691, we may conclude that the variance is different. Further, through F.test (assuming the data is normally distributed), we get p-value = 2.2e-16 < 0.05, thus we can reject the null hypothesis that the variance of two groups are statistically equal i.e. the variance of res1 and res 2 are statistically different at 5% significance level. Also, we can conclude that the estimated beta 1 with greater sample size N=100 has a lower variance that the estimated beta 1 with smaller sample size N=25. A larger sample size gives a less spread-out result i.e. data with smaller dispersion.
+
+By observing the QQ-plot and density plot, when N = 25, many points fall away from the benchmark line in the respective plots. When N=100, the points are nearly on the benchmark line in the respective plots. Also, by running Anderson-Darling normality test, the p-value for N=25 case is 2.064e-08 < 0.05, thus we should reject Anderson-Darling test null hypothesis at 5% significance level. In contrast, the p-value for N=100 is 0.8635 > 0.05, which is normal. So we conclude that the estimated beta 1 in res1 (N=25) does not follow normal distribution but the estimated beta 1 in res2 (N=100) follows a normal distribution.
+
+### b.1 Use uniformly distributed error
 ```{r Q3.2.2.b}
 set.seed(37)
 S = 10000
@@ -346,23 +314,22 @@ vec_loop = Vectorize(single_loop)
 res1 = vec_loop(rep(25,S))
 res2 = vec_loop(rep(100,S))
 
-mean(res1) # 1.999372
-mean(res2) # 2.000016
-var(res1) # 0.003772373
-var(res2) # 0.0008630136
+c(mean(res1),mean(res2)) # 1.999372,  2.000016
+c(var(res1),var(res2)) # 0.003772373,  0.0008630136
+
 var.test(res1, res2, alternative = "two.sided") # p-value < 2.2e-16
 t.test(res1, res2, alternative = "two.sided", var.equal = FALSE) # p-value = 0.3446
 
-
 normality_check(res1,res2)
 ```
+
 When the error term follows uniform distribution, res1 (with N=25) has a mean of 1.999372 and res2 (with N=100) has a mean of  2.000016. We can conclude that mean differs little at about 1e-04 level. Moreover, by running two-sided t-test of res1 and res2, we get p-value=0.3446 > 0.05, thus we cannot reject null hypothesis that the mean of two groups are statistically equal at 5% significance level. Therefore, we may conclude that the mean of two results i.e. res1 and res2 are approximately equal. The answer in II does not change for mean comparison.
 
-Regarding the variance, res1 has a variance of 0.003772373 while res2 has a variance of 0.0008630136. By comparing the varince of two results which differs at about 1e-03 level and differs by 0.002909359, we may conclude that the variance is different. Further, through F.test (assuming the data is normally distributed), we get p-value < 2.2e-16, thus we can reject the null hypothesis that the variance of two groups are statistically equal i.e. the variance of res1 and res 2 are statistically different. Also, we can conclude that the estimated beta 1 with greater sample size N=100 has a lower variance that the estimated beta 1 with smaller sample size N=25. A larger sample size gives a less spread-out result i.e. data with smaller dispersion. The answer in II does not change for variance coparison.
+Regarding the variance, res1 has a variance of 0.003772373 while res2 has a variance of 0.0008630136. By comparing the variance of two results which differs at about 1e-03 level and differs by 0.002909359, we may conclude that the variance is different. Further, through F.test (assuming the data is normally distributed), we get p-value < 2.2e-16, thus we can reject the null hypothesis that the variance of two groups are statistically equal i.e. the variance of res1 and res 2 are statistically different. Also, we can conclude that the estimated beta 1 with greater sample size N=100 has a lower variance that the estimated beta 1 with smaller sample size N=25. A larger sample size gives a less spread-out result i.e. data with smaller dispersion. The answer in II does not change for variance comparison.
 
-By observing the QQ-plot, there are only a few points near two ends falling away from the straight line.By running Anderson-Darling normality test, the p-value for both cases = 0.4207, thus we cannot reject Anderson-Darling test null hypothesis that it follows normal distribution and we conclude that both the estimated beta 1 in res1 and res2 follows normal distribution. The answer in II changes for normality.
+By observing the QQ-plot and density plot, when N = 25 and N = 100, the points are nearly on the benchmark line in the respective plots. Also, by running Anderson-Darling normality test, the p-value for N=25 case is 0.4207 > 0.05, thus we should not reject Anderson-Darling test null hypothesis at 5% significance level i.e. follow normal distribution. The p-value for N=100 is 0.4682 > 0.05, which is also normal. So we conclude that both the estimated beta 1 follow normal distributions when N = 25 and N = 100.
 
-### Use Cauchy distributed error
+### b.2 Use Cauchy distributed error
 ```{r Q3.2.2.c}
 set.seed(37)
 S = 10000
@@ -379,7 +346,7 @@ vec_loop = Vectorize(single_loop)
 res1 = vec_loop(rep(25,S))
 res2 = vec_loop(rep(100,S))
 
-mean(res1) # 1.907382x
+mean(res1) # 1.907382
 mean(res2) # -1.599096
 var(res1) # 3427.213
 var(res2) # 29851.75
@@ -387,16 +354,17 @@ t.test(res1, res2, alternative = "two.sided", var.equal = FALSE) # p-value = 0.0
 
 normality_check(res1,res2)
 ```
-When the error term follows Cauchy distribution, res1 (with N=25) has a mean of 1.907382 and res2 (with N=100) has a mean of -1.599096. We can conclude that mean differs. Moreover, by running two-sided t-test of res1 and res2, we get p-value=0.05461 < 0.1, thus we can reject null hypothesis that the mean of two groups are statistically equal at 10% significance level. Therefore, we may conclude that the mean of res1 and res2 are statistically different. The answer in II changes for mean comparison.
 
-Regarding the variance, res1 has a variance of 3427.213 while res2 has a variance of 29851.75. By comparing the varince of two results which differs much, we may conclude that the variance is different. Further, through F.test (assuming the data is normally distributed), we get p-value < 2.2e-16, thus we can reject the null hypothesis that the variance of two groups are statistically equal i.e. the variance of res1 and res 2 are statistically different. Also, we can conclude that the estimated beta 1 with greater sample size N=100 has a lower variance that the estimated beta 1 with smaller sample size N=25. A larger sample size gives a less spread-out result i.e. data with smaller dispersion. The answer in II does not change for variance coparison.
+When the error term follows Cauchy distribution, res1 (with N=25) has a mean of 1.907382 and res2 (with N=100) has a mean of -1.599096. We can conclude that mean differs. Moreover, by running two-sided t-test of res1 and res2, we get p-value = 0.05461 < 0.1, thus we can reject null hypothesis that the mean of two groups are statistically equal at 10% significance level. Therefore, we may conclude that the mean of res1 and res2 are statistically different. The answer in II changes for mean comparison.
 
-In addtiona, the difference between two mean values and 2 variance values are bigger when using Cauchy distribution than the previous 2 methods.
+Regarding the variance, res1 has a variance of 3427.213 while res2 has a variance of 29851.75. By comparing the variance of two results which differs much, we may conclude that the variance is different. Further, through F.test (assuming the data is normally distributed), we get p-value < 2.2e-16, thus we can reject the null hypothesis that the variance of two groups are statistically equal i.e. the variance of res1 and res 2 are statistically different. Also, we can conclude that the estimated beta 1 with greater sample size N=100 has a lower variance that the estimated beta 1 with smaller sample size N=25. A larger sample size gives a less spread-out result i.e. data with smaller dispersion. The answer in II does not change for variance comparison. In addition, the difference between two mean values and 2 variance values are bigger when using Cauchy distribution than the previous 2 methods.
 
-By observing the QQ-plot, many points near two ends fall away from the straight line. Also, by running Anderson-Darling normality test, the p-value for both cases = 2.2e-16 < 0.05, thus we should reject Anderson-Darling test null hypothesis at 5% significance level and conclude that both the estimated beta 1 in res1 and res2 follows non-normal distribution. The answer in II does not change for normality.
+By observing the QQ-plot and density plot, when N = 25 and N = 100, many points fall away from the benchmark line in the respective plots. Also, by running Anderson-Darling normality test, the p-values for both N = 25 and N = 100 are 2.2e-16 < 0.05, thus we should reject Anderson-Darling test null hypothesis at 5% significance level. So we conclude that the estimated beta 1 in res1(N=25) and res2(N=100) do not follow normal distributions.
 
 
 ## Q4
+### A car loan of $10000 was repaid in 60 monthly payments of $250, starting one month after the loan was made. Find the monthly interest rate r (error < 1e-8).
+
 Recurrent formula of compound interest rate:
 $$x_{n+1} = x_n (1+r) - P \\
 \implies
@@ -477,23 +445,28 @@ newton_method = function(f, r0, tol=1e-8,n=1000) {
   return(res)
 }
 
-sol1 = newton_method(func2, 0.1)
-sol2 = newton_method(func2, 0.2)
-sol3 = bisection_method(func2, 0.01, 0.1)
-sol4 = bisection_method(func2, 0.01, 0.2)
-c(sol1$`optim r`, sol2$`optim r`, sol3$`optim r`, sol4$`optim r`)
+# Start searching from 1% interest rate
+sol1 = newton_method(func2, 0.01)
+sol2 = newton_method(func2, 0.02)
+sol3 = newton_method(func2, 0.03)
+sol4 = bisection_method(func2, 0.01, 0.04)
+sol5 = bisection_method(func2, 0.01, 0.05)
+c(sol1$`optim r`, sol2$`optim r`, sol3$`optim r`, 
+  sol4$`optim r`, sol5$`optim r`)
 ```
 Bisection method and Newton method come to the same result: monthly interest rate r = 0.01439478.
 
 ```{r Q4.3} 
 
-plot(1:length(sol2$history),sol2$history,type="b",pch=20,col="blue",ylim=c(0.01,0.2),xlab="iterations",ylab="r")
-abline(sol1$`optim r`,0,col="red")
+plot(1:length(sol5$history),sol5$history,type="b",pch=20,col="blue",
+     xlim=c(1,15),ylim=c(0.01,0.05),xlab="iterations",ylab="r")
+abline(sol1$`optim r`,0,col="black")
 lines(1:length(sol1$history),sol1$history,type="b",pch=20,col="red")
-lines(1:length(sol4$history),sol4$history,type="b",pch=20,col="purple")
+lines(1:length(sol2$history),sol2$history,type="b",pch=20,col="purple")
 lines(1:length(sol3$history),sol3$history,type="b",pch=20,col="orange")
-
+lines(1:length(sol4$history),sol4$history,type="b",pch=20,col="green")
 ```
+
 As shown in the plot, bisection method converges faster than Newton method for the function in this question.  
 
 
@@ -515,10 +488,10 @@ invSampling = function(N) {
   return(runif(N)^(1/3))
 }
 
-hist(invSampling(10^6))
+hist(invSampling(10^6),xlab="X")
 ```
-## II. Calculate the expected returns using your draws. Plot the expected returns for y ∈
-(0,1).
+
+## II. Calculate the expected returns using your draws. Plot the expected returns for y in (0,1).
 
 Expected return given y:
 $$E[p(x,y)|y] = \int_0^1 p(x,y)f(x) dx$$
@@ -542,24 +515,24 @@ expectedReturn = function(y) {
 }
 ```
 
+Plot **E[p(x,y)|y] ~ y**
 ```{r Q5-2 run simulation}
 # take y from 0 to 1 with step 0.01
 Y = seq(0,1,0.01)
-#returns = sapply(Y,expectedReturn)
+returns = sapply(Y,expectedReturn)
 ```
 ```{r Q5-2 plot}
-#plot(returns ~ Y, type="l")
-#abline(0,0)
+plot(returns ~ Y, type="l")
+abline(0,0)
 ```
-III. Compute the optimal investment y∗.
+
+
+## III. Compute the optimal investment y.
 $$y^* = argmax\ E[p(x,y)|y],\ y \in (0,1) \\
 \implies
 y* = 0.4637619$$
 ```{r Q5-3}
-newton_optim = function(f, x0, tol=1e-10, n=1000, maximize=FALSE) {
-  if(maximize) {
-    f = function(x) {-1*f(x)}
-  }
+newton_optim = function(f, x0, tol=1e-10, n=1000) {
   history = x0
   
   for(i in 1:n) {
@@ -576,8 +549,8 @@ newton_optim = function(f, x0, tol=1e-10, n=1000, maximize=FALSE) {
   return(list(`optim x`=x1, `iterations`=i, `history`=history))
 }
 
-#optimize(function(y){-1*expectedReturn(y)},c(0,1))
-# 0.4637619
-#newton_optim(expectedReturn, 0)
+newton_optim(expectedReturn, 0)
 # 0.4637619
 ```
+
+The optimal investment y is 0.4637619.
