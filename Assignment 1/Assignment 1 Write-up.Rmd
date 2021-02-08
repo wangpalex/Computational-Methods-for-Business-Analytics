@@ -227,6 +227,7 @@ $$\hat{\beta} = (X^T X)^{-1} X^T Y \\
 \hat{y} = 0.734 + 1.954 x$$
 
 ```{r}
+library(MASS)
 # Use matrix algebra
 X = cbind(rep(1,1000),x) # Add bias(constant for intercept) to data matrix
 Y = y
@@ -284,6 +285,7 @@ Based on the values of estimates from all four methods, all four methods give th
 
 Check distribution of $\hat{\beta_1}$
 ```{r Q3.2.1.a}
+library(MASS)
 set.seed(37)
 S = 10000
 single_loop = function(N) {
@@ -493,8 +495,6 @@ sol3 = newton_method(analytical_func, 0.03)
 sol4 = bisection_method(obj_func, 0.01, 0.025)
 sol5 = bisection_method(analytical_func, 0.01, 0.015)
 
-mat = cbind(sol1$history,sol2$history,sol3$history)
-maxLen = nrow(mat)
 plot(1:length(sol5$history),sol5$history,type="b",pch=20,col="blue",ylim=c(0.01,0.03),xlab="iterations",ylab="r")
 abline(sol1$`optim r`,0,col="red")
 lines(1:length(sol2$history),sol2$history,type="b",pch=20,col="red")
@@ -550,15 +550,17 @@ expectedReturn = function(y) {
 
 ```{r Q5-2 run simulation}
 # take y from 0 to 1 with step 0.01
-y = seq(0,1,0.01)
-#returns = sapply(y,expectedReturn)
+Y = seq(0,1,0.01)
+#returns = sapply(Y,expectedReturn)
 ```
 ```{r Q5-2 plot}
-#plot(returns ~ y, type="l")
+#plot(returns ~ Y, type="l")
 #abline(0,0)
 ```
 III. Compute the optimal investment y∗.
-$$y^* = argmax\ E[p(x,y)|y],\ y \in (0,1)$$
+$$y^* = argmax\ E[p(x,y)|y],\ y \in (0,1) \\
+\implies
+y* = 0.4637619$$
 ```{r Q5-3}
 newton_optim = function(f, x0, tol=1e-10, n=1000, maximize=FALSE) {
   if(maximize) {
