@@ -14,18 +14,20 @@ output:
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
+
+```{r Load Packages}
+# Load packages
+library(Matrix) # Matrix operations
+library(MASS) # For Moore-Penrose pseudo-inverse ginv()
+library(doParallel) # Parallel computing
+library(nortest) # Anderson-Darling normality test
+library(numDeriv) # genD()
+```
 ## Q1
 
 ### I. Which of the 4 data violate(s) the rank condition in OLS regression?
 
 The full assumption can be denoted by rank(X) = k, where X is an n x k matrix, n observations, k independent variables. Thus, full rank assumption can be interpreted as: all the columns are linearly independent. In other words, all independent variables (including the constant) are linearly independent.
-
-```{r Load Packages}
-library(Matrix) # Matrix operations
-library(MASS) # For Moore-Penrose pseudo-inverse ginv()
-library(doParallel)
-library(nortest)
-```
 
 ```{r Q1-1}
 A = matrix(c(1,1,2,2),nrow=2)
@@ -375,7 +377,6 @@ Given: $$x_0 = 10000, x_{60} = 0, P = 250 \\
 r = 0.01439478$$
 
 ```{r Target Function} 
-library(numDeriv)
 
 func1 = function(r, x0=10000,p=250, n=60) {
   # Iteration method to calculate xn
@@ -396,7 +397,6 @@ func1 and func2 are equivalent to each other. For simplicity, func2 will be used
 
 
 ```{r Q4.1 & Q4.2} 
-
 bisection_method = function(f,left,right,tol=1e-10,n=1000) {
   if(sign(f(left))==sign(f(right))) {
     print("Bad Initial Points!")
@@ -406,7 +406,7 @@ bisection_method = function(f,left,right,tol=1e-10,n=1000) {
   history = right
   for (i in 1:n) {
     mid = (left+right)/2
-    if (f(mid)==0) {
+    if (f(mid)==0 || abs(left-right) < tol) {
       history = c(history,mid)
       res = list('optim r' = mid, 'iterations' = i,'history'=history)
       return(res)
@@ -418,10 +418,6 @@ bisection_method = function(f,left,right,tol=1e-10,n=1000) {
       history = c(history,left)
     }
     
-    if(abs(left-right) < tol) {
-      res = list('optim r' = mid, 'iterations' = i,'history'=history)
-      return(res)
-    }
   }
   print("Maximum number of iteration reached")
   res = list('optim r' = mid, 'iterations' = i,'history'=history)
@@ -465,9 +461,16 @@ lines(1:length(sol1$history),sol1$history,type="b",pch=20,col="red")
 lines(1:length(sol2$history),sol2$history,type="b",pch=20,col="purple")
 lines(1:length(sol3$history),sol3$history,type="b",pch=20,col="orange")
 lines(1:length(sol4$history),sol4$history,type="b",pch=20,col="green")
+legend("topright",
+       legend=c(paste("Bisection:",sol5$iterations,"iterations"), 
+                paste("Bisection:",sol4$iterations,"iterations"), 
+                paste("Newton:",sol3$iterations,"iterations"), 
+                paste("Newton:",sol2$iterations,"iterations"), 
+                paste("Newton:",sol1$iterations,"iterations")),
+       col=c("blue","green","orange","purple","red"),lty="solid")
 ```
 
-As shown in the plot, bisection method converges faster than Newton method for the function in this question.  
+As shown in the plot, Newton method converges faster than bisection method for the function in this question.  
 
 
 ## Q5
@@ -507,7 +510,7 @@ X = invSampling(1000000)
 expectedReturn = function(y) {
   # Compute expected return given y
   N = 1000000
-  #X = invSampling(N)
+  X = invSampling(N)
   Y = rep(y,N)
   
   # Take mean of 10^6 sampled return to approximate expectation
