@@ -1,0 +1,112 @@
+---
+title: "Assignment 2"
+author:
+- Gao Haochun A0194525Y
+- Ge Siqi A0194550A
+- Wang Pei A0194486M
+- Wei Yifei A0203451W
+date: "3/4/2021"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Q1. You study how sales depend on prices for wine. You believe that rating (i.e., expert ratings) can be an imperfect measure of taste (i.e., true quality). Taste is unobserved because there is no ideal measure for it.
+
+
+## I. Assume that causal Diagram 1 is correct. Choose sensible parameter values and simulate a data set of 𝑁 = 10000 observations for 3 variables: ratings, prices, and sales (taste data is removed after the simulation because it is unobserved to the analyst).
+
+
+## II. Use the data set you just generated and regress sales on price. How does your estimate for the price coefficient differ from its true value? Does including ratings as an independent variable solve the problem? Explain why or why not.
+
+
+## III. Redo I-II and this time assume that causal Diagram 2 is correct.
+
+
+
+# Q2
+
+## I. Simulation
+
+
+### I.1
+
+
+
+### I.2
+
+
+
+### I.3
+
+
+### I.4
+
+**I.4.a**: A, B and C
+
+
+**I.4.b**: A, B and D
+
+
+**I.4.c**: A, B and E
+
+
+**I.4.d**: A, B and F
+
+
+**I.4.e**: A, B and C_measured, where C_measured = C + rnorm(N)
+
+
+**I.4.f**: A, B and D_measured, where D_measured = D + rnorm(N)
+
+
+**I.4.g**: A_measured, B and D, where A_measured = A + rnorm(N)
+
+
+**I.4.h**: A_measured, B and C, where A_measured = A + rnorm(N)
+
+
+
+## II
+
+### II.1
+
+
+
+### II.2
+
+**II.2.a**: When D increases by 1, A will ___.
+
+**II.2.b**: When E increases by 1, A will ___.
+
+**II.2.c**: When F increases by 1, A will ___.
+
+
+### II.3
+
+
+
+## III
+
+
+
+
+# Q3
+
+## I
+
+### I.1
+
+
+### I.2
+
+
+## II
+
+### II.1
+
+### II.2
+
+## III
