@@ -15,7 +15,7 @@ getwd()
 ```
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE)
 library(stargazer)
 library(AER)
 ```
@@ -110,16 +110,18 @@ lm8 = lm(B ~ A_measured+C) # bad, measurement error by A
 stargazer(lm1,lm2,lm3,lm4,lm5,lm6,lm7,lm8, type="text",omit.stat=c("LL","ser","f"),
           model.numbers=TRUE, model.names = TRUE)
 ```
+
 Comments on models:
-a: B ~ A+C can identify relation between A and B because E is exogenous and C, which is endogenous, is included in the regressoin.
 
-b: B ~ A|D can identify relation between A and B because D is a good instrumental variable as it strongly correlates with A and it correlates with B only through A. 
+- a: B ~ A+C can identify relation between A and B because E is exogenous and C, which is endogenous, is included in the regressoin.
 
-c: B ~ A+E cannot identify relation between A and B due to omitted variable bias. C effects both A and B and is omitted in the regression.
+- b: B ~ A|D can identify relation between A and B because D is a good instrumental variable as it strongly correlates with A and it correlates with B only through A. 
 
-d: Both (B ~ A+F) and (B ~ A|F) cannot identify relation between A and B because C is omitted in the regression, causing omitted variable bias. F cannot be a instrumental variable as it correlates with B not only through A.
+- c: B ~ A+E cannot identify relation between A and B due to omitted variable bias. C effects both A and B and is omitted in the regression.
 
-e: B ~ A + C_measured can identify relation between A and B (but bot B and C). This is because:
+- d: Both (B ~ A+F) and (B ~ A|F) cannot identify relation between A and B because C is omitted in the regression, causing omitted variable bias. F cannot be a instrumental variable as it correlates with B not only through A.
+
+- e: B ~ A + C_measured can identify relation between A and B (but bot B and C). This is because:
 $$
 B = b_0 + b_1 A + b_2 C + \epsilon_1,\ \  \\
 C^* = C + \epsilon_2 \\
@@ -127,17 +129,17 @@ C^* = C + \epsilon_2 \\
 $$
 The error term of B ~ A+C* is correlated C*, but not A. Thus, the estimation for b2 is biased but the estimation for b1 is unbiased.
 
-f: B ~ A|D_measured cannot identify the relation between A and B because D_measured is not a good instrumental variable. As shown below, the R-squared between A and D_measured is merely 0.1284, and the regression coefficient is not significant, so D_measured is a bad instrumental variable for A.
+- f: B ~ A|D_measured cannot identify the relation between A and B because D_measured is not a good instrumental variable. As shown below, the R-squared between A and D_measured is merely 0.1284, and the regression coefficient is not significant, so D_measured is a bad instrumental variable for A.
 ```{r A and D_measured}
 summary(lm(A ~ D_measured))
 ```
 
-g: B ~ A_measured|D can identify the relation between A and B because D as instrumental variable can fix the attenuation effect of measurement error on A.
+- g: B ~ A_measured|D can identify the relation between A and B because D as instrumental variable can fix the attenuation effect of measurement error on A.
 
-h: B ~ A_measured + C cannot identify the relation between A and B because the error term of the regression is correlated with A_measured, causing biased estimation of b1.
+- h: B ~ A_measured + C cannot identify the relation between A and B because the error term of the regression is correlated with A_measured, causing biased estimation of b1.
 
 
-### I.2 
+### 2.II 
 ```{r Q2.2}
 set.seed(37)
 N = 10000
@@ -180,46 +182,21 @@ A4[1] - A[1] # decrease by 1/3
 
 
 
-### I.3
-```{r Q2.3}
-library(stargazer)
-library(AER)
+### 2.III
+```{r Q2.3_1, include=FALSE}
 data = read.csv("hw2q2.csv")
 attach(data)
-g_lm = lm(C ~ F) # ok
-a3_lm = lm(A ~ D) # bad
-b3_lm = lm(B ~ E) # bad
-a1_a2_a3_lm = lm(A ~ B+C+D) # ok, ???????????????
-a1_a2_lm = ivreg(A ~ B+C|E+F) # ok
-b1_b2_b3_lm = lm(B ~ A+C+E) # bad
-b1_b2_lm = ivreg(B ~ A+C|D+F) # ok
+```
 
-stargazer(a3_lm,g_lm,b3_lm,a1_a2_a3_lm,a1_a2_lm,b1_b2_b3_lm, b1_b2_lm,type="text",omit.stat=c("LL","ser","f"),
+```{r Q2.3_2}
+g_lm = lm(C ~ F)  # regress C on F
+a1_a2_a3_lm = ivreg(A ~ B+C+D|E+C+D)  # Using E as iv for B
+b1_b2_b3_lm = ivreg(B ~ A+C+E|D+C+E)  # Using D as iv for A
+
+stargazer(g_lm, a1_a2_a3_lm, b1_b2_b3_lm,type="text",omit.stat=c("LL","ser","f"),
           model.numbers=TRUE, model.names = TRUE)
 ```
 
-
-
-## II
-
-### II.1
-
-
-
-### II.2
-
-**II.2.a**: When D increases by 1, A will ___.
-
-**II.2.b**: When E increases by 1, A will ___.
-
-**II.2.c**: When F increases by 1, A will ___.
-
-
-### II.3
-
-
-
-## III
 
 # Q3
 
