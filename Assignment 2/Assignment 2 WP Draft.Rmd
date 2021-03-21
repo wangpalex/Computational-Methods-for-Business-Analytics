@@ -65,14 +65,21 @@ hist(sales)
 ```{r q1.3.2}
 model3 = lm(sales ~ price)
 model4 = lm(sales ~ price + rating)
-stargazer(model3,model4, type="text",omit.stat=c("LL","ser","f"),
+stargazer(model3,model4, 
+          type="text",omit.stat=c("LL","ser","f"),
           model.numbers=TRUE, model.names = TRUE)
 ```
 
 
 # Q2
 ## 2.I
-Data generating process: $\alpha_1=0,\alpha_2=\alpha_3=\beta_1=\beta_2=\beta_3=\gamma=1$
+Data generating process: 
+$$
+\begin{aligned}
+\alpha_1 &=0 \\
+\alpha_2=\alpha_3=\beta_1 &=\beta_2=\beta_3=\gamma=1
+\end{aligned}
+$$
 
 ```{r Q2.1 DGP}
 set.seed(37)
@@ -94,7 +101,7 @@ A_measured = A + rnorm(N)
 
 ### 2.I.1 draw causal diagram
 
-############################# TO DO: Insert causal diagram here!!!
+![Q2.1 causal diagram](diagram_1.jpg)
 
 A is correlated with B,C,D,F; depends directly on D,C, indirectly on F.
 
@@ -131,7 +138,8 @@ lm6 = ivreg(B ~ A|D_measured) # ok, but not so accurate
 lm7 = ivreg(B ~ A_measured|D) # ok
 lm8 = lm(B ~ A_measured+C) # bad, measurement error by A
 
-stargazer(lm1,lm2,lm3,lm4,lm5,lm6,lm7,lm8, type="text",omit.stat=c("LL","ser","f"),
+stargazer(lm1,lm2,lm3,lm4,lm5,lm6,lm7,lm8,
+          type="text",omit.stat=c("LL","ser","f"),
           model.numbers=TRUE, model.names = TRUE)
 ```
 
@@ -147,13 +155,16 @@ Comments on models:
 
 - e: B ~ A+C_measured cannot identify relation between A and B. This is because:
 $$
-A = a_0 + a_1C + \epsilon_1 \\
-B = b_0 + b_1 A + b_2 C + \epsilon_2,\ \  \\
-C^* = C + \epsilon_3 \\
+\begin{aligned}
+&A = a_0 + a_1C + \epsilon_1 \\
+&B = b_0 + b_1 A + b_2 C + \epsilon_2 \\
+&C^* = C + \epsilon_3 \\
 \implies 
-A = a_0 + a_1 C^* + (\epsilon_1 - a_1 \epsilon_3) \\
-B = b_0 + b_1 A + b_2 C^* + (\epsilon_2 - b_2 \epsilon_3)
+&A = a_0 + a_1 C^* + (\epsilon_1 - a_1 \epsilon_3) \\
+&B = b_0 + b_1 A + b_2 C^* + (\epsilon_2 - b_2 \epsilon_3)
+\end{aligned}
 $$
+
 The error term of B ~ A+C* is correlated C* and A. Thus, the estimation for b1 and b2 are biased.
 
 - f: B ~ A|D_measured can identify the relation between A and B but D_measured is a weaker instrumental variable than D. As shown below, the correlation between A and D_measured is 0.3518, so the estimation bias is larger than B ~ A|D. 
@@ -165,20 +176,40 @@ cor(A, D_measured)
 
 - h: B ~ A_measured + C cannot identify the relation between A and B because the error term of the regression is correlated with A_measured, causing biased estimation of b1.
 
+## 2.II
+Data generating process: 
+$$
+\begin{aligned}
+\alpha_1=\alpha_2 &=\alpha_3=-0.8 \\
+\beta_1=\beta_2 &=\beta_3=-0.5 \\
+\gamma &=0.5
+\end{aligned}
+$$
 
 ### 2.II.1
 
-################################ TO DO: Causal diagram 2 here
+![Q2.2 causal diagram](diagram_2.jpg)
 
+A is correlated with B,C,D,E,F; depends directly on B,C,D, indirectly on E,F.
+
+B is correlated with A,C,D,E,F; depends directly on A,C,E,, indirectly on D,F.
+
+C is correlated with A,B,F; depends directly on F.
+
+D is correlated with A,B; depends on nothing (exogenous).
+
+E is correlated with A,B; depends on nothing (exogenous).
+
+F is correlated with A,B,C; depends on nothing (exogenous).
 
 
 ### 2.II.2
-Solve the simultaneous equation:
+Solution of the simultaneous equations:
 $$
-A = \frac{(a_1 b_2 + a_2)C + a_3 D + a_1 b_3 E + a_1 \epsilon_3 + \epsilon_2}{1 - a_1 b_1} \ \ \\ 
+A = \frac{(a_1 b_2 + a_2)C + a_3 D + a_1 b_3 E + a_1 \epsilon_3 + \epsilon_2}{1 - a_1 b_1} \ \ \ 
 B = \frac{(a_2 b_1 + b_2)C + a_3 b_1 D + b_3 E + b_1 \epsilon_2 + \epsilon_3}{1 - a_1 b_1}
 $$
-```{r Q2.2}
+```{r Q2.2.2.1}
 set.seed(37)
 N = 10000
 
@@ -195,7 +226,9 @@ e3 = rnorm(N)
 C = g*F + e1
 A = ((a1*b2+a2)*C + a3*D + a1*b3*E + a1*e3 + e2)/(1-a1*b1)
 B = ((a2*b1+b2)*C + a3*b1*D + b3*E + b1*e2 + e3)/(1-a1*b1)
+```
 
+```{r Q2.2.2.2}
 # increase D by 1
 D2 = D+1
 A2 = ((a1*b2+a2)*C + a3*D2 + a1*b3*E + a1*e3 + e2)/(1-a1*b1)
@@ -214,46 +247,53 @@ A4[1] - A[1] # decrease by 1/3
 ```
 
 - a: When D increases by 1, A will increase by $\frac{a_3}{1 - a_1 b_1} = -\frac{4}{3}$
+
 - b: When E increases by 1, A will increase by $\frac{a_1 b_3}{1 - a_1 b_1} = \frac{2}{3}$
+
 - c: When F increases by 1, A will increase by $\frac{\gamma(a_2 + a_1 b_2)}{1 - a_1 b_1} = -\frac{1}{3}$
 
 
 
-### 2.II.3
+### 2.II.3 Show how you can identify the DGP coefficients.
 
 ```{r 2.2.3}
 g_lm = lm(C ~ F)  # regress C on F
 a1_a2_a3_lm = ivreg(A ~ B+C+D|E+C+D)  # Using E as iv for B
 b1_b2_b3_lm = ivreg(B ~ A+C+E|D+C+E)  # Using D as iv for A
 
-stargazer(g_lm, a1_a2_a3_lm, b1_b2_b3_lm,type="text",omit.stat=c("LL","ser","f"),
+stargazer(g_lm, a1_a2_a3_lm, b1_b2_b3_lm,
+          type="text",omit.stat=c("LL","ser","f"),
           model.numbers=TRUE, model.names = TRUE)
 ```
-We can identify $\gamma$ by regress C on F (C ~ F).
-We can identify $\alpha_1,\alpha_2,\alpha_3$ by regress A on C and D and using E as instrumental variable for B.
-We can identify $\beta_1,\beta_2,\beta_3$ by regress B on C and E and using D as instrumental variable for A.
 
-### 2.III
-```{r Q2.3_1, include=FALSE}
+- We can identify $\gamma$ by regress C on F (C ~ F).
+
+- We can identify $\alpha_1,\alpha_2,\alpha_3$ by regress A on C and D and using E as instrumental variable for B.
+
+- We can identify $\beta_1,\beta_2,\beta_3$ by regress B on C and E and using D as instrumental variable for A.
+
+### 2.III Identify model coefficients of given data.
+
+```{r Q2.3}
 data = read.csv("hw2q2.csv")
 attach(data)
-```
 
-```{r Q2.3_2}
 g_lm = lm(C ~ F)  # regress C on F
 a1_a2_a3_lm = ivreg(A ~ B+C+D|E+C+D)  # Using E as iv for B
 b1_b2_b3_lm = ivreg(B ~ A+C+E|D+C+E)  # Using D as iv for A
 
-stargazer(g_lm, a1_a2_a3_lm, b1_b2_b3_lm,type="text",omit.stat=c("LL","ser","f"),
+stargazer(g_lm, a1_a2_a3_lm, b1_b2_b3_lm,
+          type="text",omit.stat=c("LL","ser","f"),
           model.numbers=TRUE, model.names = TRUE)
 ```
 
 The identified values are:
 $$
-\gamma = 0.5, \\
-\alpha_1 = \alpha_2 = \alpha_3 = -0.5,  \\
-\beta_1 = \beta_2 = \beta_3 = -0.8, 
-
+\begin{aligned}
+\gamma &= 0.5 \\
+\alpha_1 = \alpha_2 &= \alpha_3 = -0.5  \\
+\beta_1 = \beta_2 &= \beta_3 = -0.8 
+\end{aligned}
 $$
 
 # Q3
