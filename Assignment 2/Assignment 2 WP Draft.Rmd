@@ -145,15 +145,15 @@ stargazer(lm1,lm2,lm3,lm4,lm5,lm6,lm7,lm8,
 
 Comments on models:
 
-- a: B ~ A+C can identify relation between A and B because E is exogenous and C, which is endogenous, is included in the regression.
+- a: B ~ A + C can identify relation between A and B because E is exogenous and C, which is endogenous, is included in the regression.
 
-- b: B ~ A|D can identify relation between A and B because D is a good instrumental variable as it strongly correlates with A and it correlates with B only through A. 
+- b: B ~ A | D can identify relation between A and B because D is a good instrumental variable as it strongly correlates with A and it correlates with B only through A. 
 
-- c: B ~ A+E cannot identify relation between A and B due to omitted variable bias. C effects both A and B and is omitted in the regression.
+- c: B ~ A + E cannot identify relation between A and B due to omitted variable bias. C effects both A and B and is omitted in the regression.
 
-- d: B ~ A+F cannot identify relation between A and B because C is omitted in the regression, causing omitted variable bias. F cannot be a instrumental variable as it correlates with B not only through A.
+- d: B ~ A + F cannot identify relation between A and B because C is omitted in the regression, causing omitted variable bias. F cannot be a instrumental variable as it correlates with B not only through A.
 
-- e: B ~ A+C_measured cannot identify relation between A and B. This is because:
+- e: B ~ A + C_measured cannot identify relation between A and B. This is because:
 $$
 \begin{aligned}
 &A = a_0 + a_1C + \epsilon_1 \\
@@ -167,12 +167,12 @@ $$
 
 The error term of B ~ A+C* is correlated C* and A. Thus, the estimation for b1 and b2 are biased.
 
-- f: B ~ A|D_measured can identify the relation between A and B but D_measured is a weaker instrumental variable than D. As shown below, the correlation between A and D_measured is 0.3518, so the estimation bias is larger than B ~ A|D. 
+- f: B ~ A | D_measured can identify the relation between A and B but D_measured is a weaker instrumental variable than D. As shown below, the correlation between A and D_measured is 0.3518, so the estimation bias is larger than B ~ A|D. 
 ```{r A and D_measured}
 cor(A, D_measured)
 ```
 
-- g: B ~ A_measured|D can identify the relation between A and B because D (the instrumental variable) can fix the attenuation effect of measurement error on A.
+- g: B ~ A_measured | D can identify the relation between A and B because D (the instrumental variable) can fix the attenuation effect of measurement error on A.
 
 - h: B ~ A_measured + C cannot identify the relation between A and B because the error term of the regression is correlated with A_measured, causing biased estimation of b1.
 
@@ -206,8 +206,10 @@ F is correlated with A,B,C; depends on nothing (exogenous).
 ### 2.II.2
 Solution of the simultaneous equations:
 $$
-A = \frac{(a_1 b_2 + a_2)C + a_3 D + a_1 b_3 E + a_1 \epsilon_3 + \epsilon_2}{1 - a_1 b_1} \ \ \ 
+\begin{aligned}
+A = \frac{(a_1 b_2 + a_2)C + a_3 D + a_1 b_3 E + a_1 \epsilon_3 + \epsilon_2}{1 - a_1 b_1} \\ \\
 B = \frac{(a_2 b_1 + b_2)C + a_3 b_1 D + b_3 E + b_1 \epsilon_2 + \epsilon_3}{1 - a_1 b_1}
+\end{aligned}
 $$
 ```{r Q2.2.2.1}
 set.seed(37)
@@ -275,6 +277,7 @@ stargazer(g_lm, a1_a2_a3_lm, b1_b2_b3_lm,
 ### 2.III Identify model coefficients of given data.
 
 ```{r Q2.3}
+rm(list=ls())
 data = read.csv("hw2q2.csv")
 attach(data)
 
@@ -290,9 +293,13 @@ stargazer(g_lm, a1_a2_a3_lm, b1_b2_b3_lm,
 The identified values are:
 $$
 \begin{aligned}
-\gamma &= 0.5 \\
-\alpha_1 = \alpha_2 &= \alpha_3 = -0.5  \\
-\beta_1 = \beta_2 &= \beta_3 = -0.8 
+\alpha_1 &= -0.32 \\
+\alpha_2 &= 0.43 \\
+\alpha_3 &= -0.58  \\
+\beta_1 &= 0.31 \\
+\beta_2 &= -0.26 \\
+\beta_3 &= 0.54 \\
+\gamma &= 0.73 
 \end{aligned}
 $$
 
