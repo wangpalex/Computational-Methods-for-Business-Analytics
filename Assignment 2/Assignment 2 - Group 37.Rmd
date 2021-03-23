@@ -9,19 +9,14 @@ date: "3/4/2021"
 output: pdf_document
 ---
 
-```{r wd}
-setwd("/Users/wangpei/OneDrive - National University of Singapore/Curriculum/Sem_04/BT3102/Assignments/Computational-Methods-for-Business-Analytics/Assignment 2/")
-getwd()
-```
-
 ```{r packages, include=FALSE}
 library(AER)
 library(stargazer)
 library(corrplot)
 ```
 # Q1
-# Q.1.I 
-## Assume Diagram 1 is correct. Choose sensible parameter values and simulate a data set of N=10000 observations for 3 variables: ratings, prices and sales (taste data is removed after the simulation because it is unobserved to the analyst)
+## 1.I 
+### Assume Diagram 1 is correct. Choose sensible parameter values and simulate a data set of N=10000 observations for 3 variables: ratings, prices and sales (taste data is removed after the simulation because it is unobserved to the analyst)
 
 ```{r Q1.I}
 set.seed(37)
@@ -39,37 +34,39 @@ hist(sales)
 ```
 
 For the DGP, we generate data as follow:
+
 - `taste`: normal distribution with mean 5, and greater than 0.
+
 - `rating`: Based on customer behaviors, they are most likely to rate based on taste evaluations. `rating` is from normal distribution with mean being the value of taste, and greater than 0.
+
 - `price`: Wine with better taste tends to have a higher price due to higher quality. `price` positively depends on taste with random error of mean 10, standard deviation 5.
+
 - `sales`: Sales should positively depend on taste evaluations, and negatively depend on price.
 
-## Q1.II.1 Regress `sales` on `price`
+## 1.II
+### 1.II.1 Regress `sales` on `price`
 ```{r Q1.II.1}
 lm_sales_on_price = lm(sales~price)
-summary(lm_sales_on_price)$coefficients
-# Due to omitted variable bias.
+summary(lm_sales_on_price)$coefficients  # omitted variable bias
 ```
 
 The coefficient estimate of price is 0.4107, and it's significantly different from -2. Thus, we conclude this coefficient is biased, and using price as the only independent variables is insufficient.
 
 This is because `taste` is correlated with both `price` and `sales`, thus omitting `taste` results in omitted variable bias.
 
-## Q1.II.2 Include `rating` as independent variable
+### 1.II.2 Include `rating` as independent variable
 ```{r Q1.II.2}
 lm_sales_on_price_and_rating= lm(sales ~ price + rating)
-summary(lm_sales_on_price_and_rating)$coefficients
-# Does not help
-cor(rating, price) # 0.5192752
-cor(rating, sales) # 0.4074834
+summary(lm_sales_on_price_and_rating)$coefficients # Still biased
 ```
 
 The coefficient of price is 0.1922, which is significantly different from -2 and is still biased.
 
-This is because omitted variable bias still exists. Including rating does not help. 
-??????????????????????????????????????????????????????????????????????????????????
+This is because omitted variable bias still exists. Including rating helps to explain more variation, but is **insufficient** to resolve the omitted variable bias.
 
-## Q1.III
+## 1.III
+
+Data generating process:
 ```{r Q1 III DGP}
 rm(list=ls())
 set.seed(37)
@@ -81,24 +78,28 @@ rating = sapply(rnorm(N, mean = taste) + rnorm(N), function(x) {max(x, 0)})
 hist(rating)
 price = rating * 10 + rnorm(N, mean = 10, sd = 5)
 hist(price)
-sales = price * (-2) + taste * 30 + 50 + rnorm(N)
+sales = sapply(price * (-2) + taste * 30 + 50 + rnorm(N), function(x){max(x,0)})
 hist(sales)
 ```
 
 The DGP is similar as part(I), except that one parent of price changes from taste to rating.
+
+### 1.III.1 Regress sales on price
 
 ```{r Q1.III.1}
 lm_sales_on_price = lm(sales ~ price)
 summary(lm_sales_on_price)$coefficients  # there is omitted variable bias  
 
 ```
-The coefficient is -1.0677, which is significantly different from -2, the estimate is biased due to omitted variable bias. `taste` is correlated with sales, and is also correlated with `price`  through rating, thus omitting `taste` will result in omitted variable bias.
+The coefficient is -1.0598, which is significantly different from -2, the estimate is biased due to omitted variable bias. `taste` is correlated with sales, and is also correlated with `price`  through rating, thus omitting `taste` will result in omitted variable bias.
+
+### 1.III.2 Include rating as independent variable
 
 ```{r Q1.III.2}
 lm_sales_on_price_and_rating= lm(sales ~ price + rating)
 summary(lm_sales_on_price_and_rating)$coefficients  # ok
 ```
-The coefficient of price is -2.0540, which is close to the true value of -2. The omitted variable bias is resolved by including `rating`.
+The coefficient of price is -2.0421, which is close to the true value of -2. The omitted variable bias is resolved by including `rating`.
 
 This is because when `rating` is held constant/controlled for, `taste` cannot affect `price` via `rating`, therefore the error term is not correlated with `price`, and the estimate is correct.
 
@@ -156,7 +157,7 @@ B is a collider variable, it will cause endogenous selection bias if added into 
 
 ### 2.I.3 Which variables to include to predict A? Is the model also a good causal inference model?
 
-To predict A, we can include D and C by regressing A on D and C (A ~ D+C). It is also a good model for causal inference as it captures the true relationship between A between D and C. This is because there is no endogeneity problem as all parents of A are included in the regression model.
+To predict A, we can include D and C by regressing A on D and C (A ~ D+C). It is also a good model for causal inference as it captures the true relationship between A and D and C. This is because there is no endogeneity problem as all parents of A are included in the regression model.
 
 ### 2.I.4 Show whether or not each of following data is enough to identify relation between A and B.
 ```{r Q2.1.4}
@@ -196,7 +197,7 @@ $$
 \end{aligned}
 $$
 
-The error term of B ~ A+C* is correlated C* and A. Thus, the estimation for b1 and b2 are biased.
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; The error term of B ~ A+C* is correlated C* and A. Thus, the estimation for b1 and b2 are biased.
 
 - f: Enough. B ~ A | D_measured can identify the relation between A and B but D_measured is a weaker instrumental variable than D. As shown below, the correlation between A and D_measured is 0.3518, so the estimation bias is larger than B ~ A | D. 
 ```{r A and D_measured}
@@ -305,7 +306,8 @@ stargazer(g_lm, a1_a2_a3_lm, b1_b2_b3_lm,
 
 - We can identify $\beta_1,\beta_2,\beta_3$ by regress B on C and E and using D as instrumental variable for A.
 
-### 2.III Identify model coefficients of given data.
+## 2.III 
+### Identify model coefficients of given data.
 
 ```{r Q2.3}
 rm(list=ls())
@@ -344,15 +346,13 @@ df$soph <- as.factor(df$soph)
 summary(df)
 ```
 ## 3.I
-### 3.I.1 To determine the effects of attending lecture on final exam performance, estimate a regression model relating `stndfnl` (the standardized final exam score) to `atndrte` (the percentage of lectures attended). Include the dummy variables `fresh` (indicator for a freshmen student) and `soph` (indicator for a sophomore student) as explanatory variables.
-1) Interpret the regression coefficient on `atndrte` and discuss its significance.
+### To determine the effects of attending lecture on final exam performance, estimate a regression model relating `stndfnl` (the standardized final exam score) to `atndrte` (the percentage of lectures attended). Include the dummy variables `fresh` (indicator for a freshmen student) and `soph` (indicator for a sophomore student) as explanatory variables.
+### 3.I.1 Interpret the regression coefficient on `atndrte` and discuss its significance.
 
 ```{r qI-1}
 fit1 <- lm(stndfnl ~ atndrte + fresh + soph, data = df)
 summary(fit1)
 ```
-
-Answer:
 
 The regression coefficient on `atndrte` is 0.008407. It suggests that on average, the increase the percentage of lectures attended by 1 unit will increase the standardized final exam score by 0.008407 units while holding all other variables (including `fresh` and `soph`) constant.
 
@@ -362,23 +362,20 @@ The p-value of the coefficient on `atndrte` is 0.000118 which is less than 0.001
 
 ### 3.I.2 How confident are you that the OLS estimate is estimating the causal effect of student attendance? Explain your answer.
 
-Answer:
-
 The R square of the model is 0.02986 and the adjusted R square of the model is 0.02554, where both values are very small. This suggests that very little variation in the standardized final exam score can be explained by the variation in regressors including the percentage of lectures attended. The regression model does not fit the observations well and the variation in the data are not explained well by the regressors. We suspect that more variables should be included and controlled in order to estimate the casual effect of student attendance accurately. Therefore, we are not confident in concluding that the OLS estimate on `atndrte` is estimating the causal effect of student attendance on the standardized final exam score.
 
 The current model only includes three variables in the casual relationship analysis. There can be other factors affecting the students' final exam score, such as students' motivation in studying. Students with greater motivation are likely to attend lectures more frequently, also motivated students tend to study harder and achieve higher exam results. The correlation between regressors and error term will fail the assumption 3 and result in omitted variable bias. This will make the OLS estimate for the causal effect of student attendance on exam score biased. Therefore, due to omitted variable bias in this model, we are not confident that the OLS estimate on `atndrte` is estimating the causal effect of student attendance on the standardized final exam score.
 
 
 
-# 3.II As proxy variables for a student’s ability, add to your regression model in part (I) the variables `priGPA` (prior cumulative GPA) and `ACT` (achievement test score).
+## 3.II 
+### As proxy variables for a student’s ability, add to your regression model in part (I) the variables `priGPA` (prior cumulative GPA) and `ACT` (achievement test score).
 
-## 3.II.1 Now what is the effect of the `atndrte` variable? Discuss how this effect differs from that in part (I).
+### 3.II.1 Now what is the effect of the `atndrte` variable? Discuss how this effect differs from that in part (I).
 ```{r q3.2.1}
 fit2 <- lm(stndfnl ~ atndrte + fresh + soph + priGPA + ACT, data = df)
 summary(fit2)
 ```
-
-Answer:
 
 **What is the effect**
 
@@ -402,9 +399,7 @@ Also, from the correlation matrix, we can observe that both `priGPA` and `ACT` (
 
 
 
-## 3.II.2 What happens to the statistical significance of the dummy variables `fresh` and `soph` now as compared with part (I)? Explain how this may have come about.
-
-Answer:
+### 3.II.2 What happens to the statistical significance of the dummy variables `fresh` and `soph` now as compared with part (I)? Explain how this may have come about.
 
 In part (I), the p-value of the coefficient of the dummy variables fresh and `soph` is 0.018661 and 0.256153. This suggests that the coefficient of fresh is statistically significant at 5% significance level but the coefficient of `soph` is statistically insignificant.
 
@@ -416,8 +411,8 @@ The correlation coefficient between `stndfnl` and `priGPA` is 0.37, cor(`stndfnl
 In the real world case, as compared to one's seniority (`fresh`, `soph`), `priGPA` and `ACT` can better represent one's learning ability, which is an important determinant of one's `stndfnl`. Furthermore, the freshmen tend to have a lower `priGPA` because they just enter university and may not get used to the pace of study. Thus, when `priGPA` and `ACT` are included in the model and controlled for, the effect of dummy variables on the final exam score will be reduced.
 
 
-# Q3 
-## Use the `hwrte` variable as an instrumental variable (IV) for `atndrte`. Perform an IV estimation based on your regression model in part (II). Comment on the results of this IV regression estimation. Comment on the validity of using the hwrte variable as an IV for atndrte if you suspect that the atndrte variable is endogenous.
+## 3.III
+### Use the `hwrte` variable as an instrumental variable (IV) for `atndrte`. Perform an IV estimation based on your regression model in part (II). Comment on the results of this IV regression estimation. Comment on the validity of using the hwrte variable as an IV for atndrte if you suspect that the atndrte variable is endogenous.
 
 ```{r qIII}
 # Use hwrte as iv for atndrte, others remain the same
@@ -426,8 +421,6 @@ fit3 <- ivreg(stndfnl ~ atndrte + fresh +
                 soph + priGPA + ACT, data = df)
 stargazer(fit2,fit3, type="text", omit.stat=c("f"))
 ```
-
-Answer:
 
 The coefficient on `atndrte` using `hwrte` as an instrumental variable is 0.009, which is statistically significant at 5% significance level. The coefficient on `atndrte` obtained in this part (III) is larger than that from Part (II).
 
