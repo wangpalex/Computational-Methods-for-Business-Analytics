@@ -1,0 +1,363 @@
+---
+title: "Assignment 3"
+author: "Wang Pei"
+date: "4/3/2021"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r loading packages, include=FALSE}
+library(dplyr)
+library(car)
+library(lfe)
+library(stargazer)
+library(evd) # gumbel distribution
+library(stats4) # mle
+```
+
+```{r Q1.1.1}
+
+df1 = read.csv("hw3q1.csv")
+# df1$after = as.factor(df1$after)
+# df1$age = as.factor(df1$age)
+# df1$received_coupon = as.factor(df1$received_coupon)
+grouped = df1 %>% group_by(age,after,received_coupon) %>% summarise(mean(revenue))
+grouped
+
+# Treatment effect
+# Age 20-30
+(12.32244 - 11.78103) - (10.36813 - 10.31286)  # 0.48614
+
+# Age 30-40
+(10.32048 - 9.10888) -	(8.77142 - 8.45867)	 # 0.89885
+
+# Age 40+
+(12.00626 - 10.71556) - (9.34199 - 9.27426)  # 1.22297
+
+g2 = df1 %>% group_by(after,received_coupon) %>% summarise(mean(revenue))
+g2
+(11.549727 - 10.535157) - (9.493847 - 9.348597) # 0.86932
+```
+
+```{r Q1.1.2}
+# Verify with felm
+
+age20 = df1[df1['age']=='20-30',]
+age30 = df1[df1['age']=='30-40',]
+age40 = df1[df1['age']=='40+',]
+
+felm1 = felm(revenue ~ received_coupon|after, data=age20)
+felm2 = felm(revenue ~ received_coupon|after, data=age30)
+felm3 = felm(revenue ~ received_coupon|after, data=age40)
+felm4 = felm(revenue ~ after|received_coupon, data=age20)
+felm5 = felm(revenue ~ after|received_coupon, data=age30)
+felm6 = felm(revenue ~ after|received_coupon, data=age40)
+
+inter1 = lm(revenue ~ received_coupon*after,data=age20)
+inter2 = lm(revenue ~ received_coupon*after,data=age30)
+inter3 = lm(revenue ~ received_coupon*after,data=age40)
+
+# lm1 = lm(revenue ~ received_coupon, data=age20[age20$after==0,])
+# lm2 = lm(revenue ~ received_coupon, data=age20[age20$after==1,])
+# lm3 = lm(revenue ~ received_coupon, data=age30[age30$after==0,])
+# lm4 = lm(revenue ~ received_coupon, data=age30[age30$after==1,])
+# lm5 = lm(revenue ~ received_coupon, data=age40[age40$after==0,])
+# lm6 = lm(revenue ~ received_coupon, data=age40[age40$after==1,])
+stargazer(felm1,felm2,felm3,felm4,inter1,inter2,inter3,#lm1,lm2,lm3,lm4,lm5,lm6,
+          type="text",omit.stat=c("LL","ser","f"),
+          model.numbers=TRUE, model.names = TRUE)
+
+```
+
+```{r Q2}
+data2 = read.csv("hw3q2.csv")
+```
+
+```{r Q2.1 mle}
+lik = function(beta0,beta1,beta2) {
+  # likelihood function
+  Pij =
+  (data2$choices==0) * 0 +
+	(data2$choices==1) * (beta1 + data2$p1 * beta0) +
+	(data2$choices==2) * (beta2 + data2$p2 * beta0) -
+	log(1+exp(beta1 + data2$p1*beta0)+exp(beta2 + data2$p2*beta0))
+  
+	return(-sum(Pij))
+}
+
+# estimation
+mle1 = mle(lik, 
+	start = runif(3,-1,0),  # random initialization
+	method = "L-BFGS-B", 
+	lower = c(-10, -10,-10),
+  upper = c(-0.00001, 10, 10))  # beta0, coeff of price, should be negtive
+
+summary(mle1)
+#  beta0       beta1        beta2
+# -0.07906284  0.66639176  -1.66095162
+```
+
+```{r Q2.2}
+data2$sales = 1
+
+mkt_share=aggregate(sales~p1+p2+surge_2+choices, data=data2, FUN=sum)
+mkt_share$total=ave(mkt_share$sales,by=list(mkt_share$p1,mkt_share$p2,mkt_share$surge_2),FUN=sum)
+mkt_share$share=mkt_share$sales/mkt_share$total
+
+iop_dta=subset(mkt_share,choices!=0)#inside options
+oop_dta=subset(mkt_share,choices==0)[,c("p1","p2","share")]#outside option
+colnames(oop_dta)=c("p1","p2","share0")
+lm_dta=merge(oop_dta,iop_dta)#merge inside options with outside option
+
+lm_dta$log_odds=log(lm_dta$share/(lm_dta$share0))
+lm_dta$price=(lm_dta$choices==1)*lm_dta$p1+
+(lm_dta$choices==2)*lm_dta$p2   #the price for the focal product
+lm_dta$product=as.factor(as.character(lm_dta$choices))
+lm_dta[1:20,]
+
+logistic_regression=lm(log_odds~price+product,lm_dta)
+l2=ivreg(log_odds~price+product|surge_2,lm_dta)
+stargazer(logistic_regression,l2, type="text",omit.stat=c("f"))
+```
+
+```{r Q2.3.1 one product}
+# Is there any price discrimination???
+
+# JustGrab(j=1)
+
+
+# GrabShare(j=2)
+
+```
+
+```{r Q2.3.2 two products}
+
+
+```
+
+
+
+```{r Q3.1.1 pre-merger}
+set.seed(37)
+#parameters
+beta0=-0.03
+beta1=2
+beta2=1
+beta3=2
+N = 10
+# global variables
+price1=10
+price2=10
+price3=10
+
+
+prob_1 = function(price1) {
+  exp(beta1+price1*beta0)/
+	(1+exp(beta1+price1*beta0)+exp(beta2+price2*beta0)+exp(beta3+price3*beta0))
+}
+prob_2 = function(price2) {
+  exp(beta2+price2*beta0)/
+	(1+exp(beta1+price1*beta0)+exp(beta2+price2*beta0)+exp(beta3+price3*beta0))
+}
+prob_3 = function(price3) {
+  exp(beta3+price3*beta0)/
+	(1+exp(beta1+price1*beta0)+exp(beta2+price2*beta0)+exp(beta3+price3*beta0))
+}
+
+cost = function(s) {
+  (s-7)^2 + 50
+}
+
+# objective function  of firm 1
+profit_1=function(price1){
+  produce1 = N*prob_1(price1)
+	profit = produce1*price1 - cost(produce1)
+	return(-profit)
+}
+
+# optim(c(1,1),profit_1,method = "BFGS")$par
+
+# objective function  of firm 2
+profit_2=function(price2){
+  produce2 = N*prob_2(price2)
+	profit = produce2*price2 - cost(produce2)
+	return(-profit)
+}
+
+# objective function  of firm 3
+profit_3=function(price3){
+  produce3 = N*prob_3(price3)
+	profit = produce3*price3 - cost(produce3)
+	return(-profit)
+}
+
+# best response dynamic 
+i=0
+error=1
+Iter=1000
+Tol=1e-10
+prices = c(1,1,1)
+while (i<Iter & error>Tol) {
+
+	i=i+1
+	price1=prices[1]
+	price2=prices[2]
+	price3=prices[3]
+	# produce1=produces[1]
+	# produce2=produces[2]
+	# produce3=produces[3]
+	
+	prices[1] = optim(c(1), profit_1, method = "L-BFGS-B",
+	             lower=c(0),upper=c(Inf))$par
+	
+	prices[2] = optim(c(1), profit_2, method = "L-BFGS-B", 
+	             lower=c(0),upper=c(Inf))$par
+	
+  prices[3] = optim(c(1), profit_3, method = "L-BFGS-B", 
+	             lower=c(0),upper=c(Inf))$par
+	
+	error=abs(prices[1]-price1)+abs(prices[2]-price2)+abs(prices[3]-price3)
+}
+
+price1=prices[1]
+price2=prices[2]
+price3=prices[3]
+
+c(i, error)
+prices
+c(-profit_1(c(price1)),-profit_2(c(price2)),-profit_3(c(price3)))
+
+```
+
+```{r Q3.1.2 after-merge}
+cost_merged = function(s1,s2,lambda1=1,lambda2=1) {
+  return(lambda1*cost(s1) + lambda2*cost(s2))
+}
+
+profit_merged = function(param) {
+  price1=param[1]
+  price2=param[2]
+  produce1=N*exp(beta1+price1*beta0)/
+	(1+exp(beta1+price1*beta0)+exp(beta2+price2*beta0)+exp(beta3+price3*beta0))
+  
+  produce2=N*exp(beta2+price2*beta0)/
+	(1+exp(beta1+price1*beta0)+exp(beta2+price2*beta0)+exp(beta3+price3*beta0))
+  
+  profit=produce1*price1 + produce2*price2 - cost_merged(produce1,produce2)
+  
+  return(-profit)
+}
+
+price3 = 42.47629
+res = optim(c(1,1), profit_merged, method = "L-BFGS-B",
+	             lower=c(0,0),upper=c(Inf,Inf))$par
+prices[1] = res[1]
+prices[2] = res[2]
+
+prices
+price1 = prices[1]
+price2 = prices[2]
+price3 = 42.47629
+
+c(-profit_merged(c(prices[1], prices[2])), -profit_3(price3))
+
+```
+
+```{r Q3.2.1}
+i = 0
+error=1
+Iter=1000
+Tol=1e-10
+prices = c(1,1,1)
+
+while (i < 150 & error > Tol) {
+  price1 = prices[1]
+  price2 = prices[2]
+  price3 = prices[3]
+  
+  res1 = optim(c(1,1), profit_merged, method = "L-BFGS-B",
+	             lower=c(0,0),upper=c(Inf,Inf))$par
+  prices[1] = res1[1]
+  prices[2] = res1[2]
+  prices[3] = optim(c(1), profit_3, method = "L-BFGS-B",
+	             lower=c(0),upper=c(Inf))$par
+  
+  i = i + 1
+  error=abs(prices[1]-price1)+abs(prices[2]-price2)+abs(prices[3]-price3)
+}
+
+price1=prices[1]
+price2=prices[2]
+price3=prices[3]
+
+c(i, error)
+prices
+c(-profit_merged(c(price1, price2)),-profit_3(c(price3)))
+
+```
+```{r Q3.2.1}
+merger_analysis = function(lambda1, lambda2) {
+  cost_merged = function(s1,s2) {
+    return(lambda1*cost(s1) + lambda2*cost(s2))
+  }
+  
+  profit_merged = function(param) {
+    price1=param[1]
+    price2=param[2]
+    produce1=N*exp(beta1+price1*beta0)/
+  	(1+exp(beta1+price1*beta0)+exp(beta2+price2*beta0)+exp(beta3+price3*beta0))
+    
+    produce2=N*exp(beta2+price2*beta0)/
+  	(1+exp(beta1+price1*beta0)+exp(beta2+price2*beta0)+exp(beta3+price3*beta0))
+    
+    profit=produce1*price1 + produce2*price2 - cost_merged(produce1,produce2)
+    
+    return(-profit)
+  }
+  
+  profit_3=function(price3){
+    produce3 = N*exp(beta3+price3*beta0)/
+  	(1+exp(beta1+price1*beta0)+exp(beta2+price2*beta0)+exp(beta3+price3*beta0))
+    
+  	profit = produce3*price3 - cost(produce3)
+  	return(-profit)
+  }
+  
+  i = 0
+  error=1
+  Iter=1000
+  Tol=1e-10
+  prices = c(1,1,1)
+  
+  while (i < 150 & error > Tol) {
+    price1 = prices[1]
+    price2 = prices[2]
+    price3 = prices[3]
+    
+    res1 = optim(c(1,1), profit_merged, method = "L-BFGS-B",
+  	             lower=c(0,0),upper=c(Inf,Inf))$par
+    prices[1] = res1[1]
+    prices[2] = res1[2]
+    prices[3] = optim(c(1), profit_3, method = "L-BFGS-B",
+  	             lower=c(0),upper=c(Inf))$par
+    
+    i = i + 1
+    error=abs(prices[1]-price1)+abs(prices[2]-price2)+abs(prices[3]-price3)
+  }
+  
+  price1=prices[1]
+  price2=prices[2]
+  price3=prices[3]
+  
+  list(
+    'prices'=prices, 
+    'profits'=c(-profit_merged(c(price1, price2)),-profit_3(c(price3))),
+    'costs'=c()
+  )
+  
+}
+
+```
