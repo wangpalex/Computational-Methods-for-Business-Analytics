@@ -19,36 +19,63 @@ library(stats4) # mle
 ```
 
 ```{r Q1.1.1}
-
 df1 = read.csv("hw3q1.csv")
-# df1$after = as.factor(df1$after)
-# df1$age = as.factor(df1$age)
-# df1$received_coupon = as.factor(df1$received_coupon)
-grouped = df1 %>% group_by(age,after,received_coupon) %>% summarise(mean(revenue))
-grouped
-
-# Treatment effect
-# Age 20-30
-(12.32244 - 11.78103) - (10.36813 - 10.31286)  # 0.48614
-
-# Age 30-40
-(10.32048 - 9.10888) -	(8.77142 - 8.45867)	 # 0.89885
-
-# Age 40+
-(12.00626 - 10.71556) - (9.34199 - 9.27426)  # 1.22297
-
-g2 = df1 %>% group_by(after,received_coupon) %>% summarise(mean(revenue))
-g2
-(11.549727 - 10.535157) - (9.493847 - 9.348597) # 0.86932
-```
-
-```{r Q1.1.2}
-# Verify with felm
+df1$after = as.factor(df1$after)
+df1$age = as.factor(df1$age)
+df1$received_coupon = as.factor(df1$received_coupon)
 
 age20 = df1[df1['age']=='20-30',]
 age30 = df1[df1['age']=='30-40',]
 age40 = df1[df1['age']=='40+',]
 
+nrow(age20[age20$after==1,])/nrow(age20)  # 50% each
+nrow(age30[age30$after==1,])/nrow(age30)  # 50% each
+nrow(age40[age40$after==1,])/nrow(age40)  # 50% each
+```
+
+```{r age 20-30}
+# Age 20-30
+age20 %>% group_by(after, received_coupon) %>% summarise(mean(revenue))
+
+# Treatment effect
+# After
+after_20 = 12.32244 - 11.78103  # 0.54141
+# Before
+before_20 = (10.36813 - 10.31286)  # 0.05527
+# Average treatment effect
+(after_20 + before_20)/2  # 0.29834
+# DID
+after_20 - before_20  # 0.48614
+```
+
+```{r age 30-40}
+# Age 30-40
+age30 %>% group_by(after, received_coupon) %>% summarize(mean(revenue))
+# After
+after_30 = 10.32048 - 9.10888  # 1.2116
+# Before
+before_30 = 8.77142 - 8.45867  # 0.31275
+# Average treatment effect
+(after_30 + before_30)/2  # 0.762175
+# DID
+after_30 - before_30  # 0.89885
+```
+
+```{r age 40+}
+# Age 40+
+age40 %>% group_by(after, received_coupon) %>% summarize(mean(revenue))
+# After
+after_40 = 12.00626 - 10.71556  # 1.9207
+# Before
+before_40 = 9.34199 - 9.27426  # 0.06773
+# Average treatment effect
+(after_40 + before_40)/2  # 0.679215
+# DID
+after_40 - before_40  # 1.22297
+```
+
+```{r Q1.1.2}
+# Verify with felm
 felm1 = felm(revenue ~ received_coupon|after, data=age20)
 felm2 = felm(revenue ~ received_coupon|after, data=age30)
 felm3 = felm(revenue ~ received_coupon|after, data=age40)
@@ -56,17 +83,16 @@ felm4 = felm(revenue ~ after|received_coupon, data=age20)
 felm5 = felm(revenue ~ after|received_coupon, data=age30)
 felm6 = felm(revenue ~ after|received_coupon, data=age40)
 
+stargazer(felm1,felm2,felm3,felm4,felm5,felm6,
+          type="text",omit.stat=c("LL","ser","f"),
+          model.numbers=TRUE, model.names = TRUE)
+
+# Use interaction term to find DID 
 inter1 = lm(revenue ~ received_coupon*after,data=age20)
 inter2 = lm(revenue ~ received_coupon*after,data=age30)
 inter3 = lm(revenue ~ received_coupon*after,data=age40)
 
-# lm1 = lm(revenue ~ received_coupon, data=age20[age20$after==0,])
-# lm2 = lm(revenue ~ received_coupon, data=age20[age20$after==1,])
-# lm3 = lm(revenue ~ received_coupon, data=age30[age30$after==0,])
-# lm4 = lm(revenue ~ received_coupon, data=age30[age30$after==1,])
-# lm5 = lm(revenue ~ received_coupon, data=age40[age40$after==0,])
-# lm6 = lm(revenue ~ received_coupon, data=age40[age40$after==1,])
-stargazer(felm1,felm2,felm3,felm4,inter1,inter2,inter3,#lm1,lm2,lm3,lm4,lm5,lm6,
+stargazer(inter1,inter2,inter3,
           type="text",omit.stat=c("LL","ser","f"),
           model.numbers=TRUE, model.names = TRUE)
 
@@ -153,7 +179,6 @@ price1=10
 price2=10
 price3=10
 
-
 prob_1 = function(price1) {
   exp(beta1+price1*beta0)/
 	(1+exp(beta1+price1*beta0)+exp(beta2+price2*beta0)+exp(beta3+price3*beta0))
@@ -177,8 +202,6 @@ profit_1=function(price1){
 	profit = produce1*price1 - cost(produce1)
 	return(-profit)
 }
-
-# optim(c(1,1),profit_1,method = "BFGS")$par
 
 # objective function  of firm 2
 profit_2=function(price2){
@@ -206,9 +229,6 @@ while (i<Iter & error>Tol) {
 	price1=prices[1]
 	price2=prices[2]
 	price3=prices[3]
-	# produce1=produces[1]
-	# produce2=produces[2]
-	# produce3=produces[3]
 	
 	prices[1] = optim(c(1), profit_1, method = "L-BFGS-B",
 	             lower=c(0),upper=c(Inf))$par
@@ -227,9 +247,14 @@ price2=prices[2]
 price3=prices[3]
 
 c(i, error)
+# prices
 prices
+# sales
+c(N*prob_1(price1), N*prob_2(price2), N*prob_3(price3))
+# costs
+sapply(c(N*prob_1(price1), N*prob_2(price2), N*prob_3(price3)), cost)
+# profits
 c(-profit_1(c(price1)),-profit_2(c(price2)),-profit_3(c(price3)))
-
 ```
 
 ```{r Q3.1.2 after-merge}
@@ -254,14 +279,18 @@ profit_merged = function(param) {
 price3 = 42.47629
 res = optim(c(1,1), profit_merged, method = "L-BFGS-B",
 	             lower=c(0,0),upper=c(Inf,Inf))$par
-prices[1] = res[1]
-prices[2] = res[2]
 
-prices
-price1 = prices[1]
-price2 = prices[2]
+price1 = res[1]
+price2 = res[2]
 price3 = 42.47629
 
+# prices
+c(price1, price2, price3)
+# sales
+c(N*prob_1(price1), N*prob_2(price2),N*prob_3(price3))
+# costs
+c(cost_merged(N*prob_1(price1), N*prob_2(price2)), cost(N*prob_3(price3)))
+# profits
 c(-profit_merged(c(prices[1], prices[2])), -profit_3(price3))
 
 ```
@@ -294,10 +323,16 @@ price2=prices[2]
 price3=prices[3]
 
 c(i, error)
+# prices
 prices
+# sales
+c(N*prob_1(price1),N*prob_2(price2),N*prob_3(price3))
+# costs
+c(cost_merged(N*prob_1(price1),N*prob_2(price2)), cost(N*prob_3(price3)))
+# profits
 c(-profit_merged(c(price1, price2)),-profit_3(c(price3)))
-
 ```
+
 ```{r Q3.2.1}
 merger_analysis = function(lambda1, lambda2) {
   cost_merged = function(s1,s2) {
@@ -352,12 +387,14 @@ merger_analysis = function(lambda1, lambda2) {
   price2=prices[2]
   price3=prices[3]
   
-  list(
-    'prices'=prices, 
-    'profits'=c(-profit_merged(c(price1, price2)),-profit_3(c(price3))),
-    'costs'=c()
-  )
+  return (list(
+    'prices'= prices, 
+    'sales' = c(N*prob_1(price1),N*prob_2(price2),N*prob_3(price3)),
+    'costs' = c(cost_merged(N*prob_1(price1),N*prob_2(price2)), cost(N*prob_3(price3))),
+    'profits'=c(-profit_merged(c(price1, price2)),-profit_3(c(price3)))
+  ))
   
 }
 
+merger_analysis(1,1)
 ```
