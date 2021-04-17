@@ -438,3 +438,101 @@ ggplot(record1, aes(x=lambda1, y=lambda2)) + geom_point(aes(size=profit_after_me
 
 
 ```
+
+
+```{r q4.1 Imax=20}
+# set up
+settings=list(K=3, # number of pack sizes
+	n=c(2,6,0), # number of  units in size k, 0 is not buying
+	Imax=20, # maximum inventory
+	tol=1e-8, # error tolerance for convergence
+	iter_max=10000  # maximum  number of iterations
+	)
+
+param=list(beta=0.99,
+	alpha=4, # price sensitivity
+	delta=10, # consumption utility
+	c=0.05 # cost for holding inventory
+	)
+
+price=list(
+	L=2, # number of price levels
+	prices=data.frame(price_norm=c(2,5,0),price_prom=c(1.2,3,0)), #K-by-L, normal prices and promotion prices
+	prob=c(0.84,0.16) # probability of different price levels.
+	)
+
+# fixed point iteration
+value_function_iteration=function(settings,param,price){
+
+	value_0=matrix(0,nrow=settings$Imax+1,ncol=price$L) # State vars are inventory and price
+	error=settings$tol+1
+	iteration=1
+	start_time=Sys.time()
+	
+	while (error>=settings$tol & iteration<= settings$iter_max){
+	  # bellman_operator takes in curr_value and updates State
+		value=Bellman_operator(value_0,settings,param,price)$value		
+		iteration=iteration+1
+		error=max(abs(value-value_0))
+		value_0=value
+	}
+
+	time_elapsed=Sys.time()-start_time
+	solution=Bellman_operator(value_0,settings,param,price)
+
+	output=list(time_elapsed,error,iteration,solution)
+}
+
+# fixed point operator that updates value function for any 
+Bellman_operator=function(value_0,settings,param,price){
+  
+  # 3 dims: num_Inventory x num_Price x num_Choice
+	v_choice=array(0,dim=c(settings$Imax+1,price$L,settings$K))
+	value=matrix(0,nrow=settings$Imax+1,ncol=price$L)
+	choice=matrix(0,nrow=settings$Imax+1,ncol=price$L)
+	inventory=c(0:settings$Imax)
+	Ev=value_0%*%price$prob  # expected value
+
+	for (k in 1:(settings$K)){
+	  # update inventory
+		inventory_new0=inventory+settings$n[k]
+		# inventory_new=inventory_new0-1
+		# inventory_new[inventory_new<0]=0
+		# inventory_new[inventory_new>settings$Imax]=settings$Imax
+		inventory_new = min(settings$Imax, max(0, inventory_new0-1))
+		
+		# Calculate utility of curr inventory
+		utility=param$delta*(inventory_new0>0)-param$c*inventory_new
+
+		for (l in 1:price$L){
+			v_choice[,l,k]=utility-param$alpha*price$prices[k,l]+param$beta*Ev[inventory_new+1]
+		}		
+	}
+
+	for (i in 1:(settings$Imax+1)){
+		for (l in 1:price$L){
+			value[i,l]=max(v_choice[i,l,])
+			choice[i,l]=which.max(v_choice[i,l,])
+		}
+	}
+
+	output=list(value=value,choice=choice)
+	return(output)
+}
+
+results=value_function_iteration(settings,param,price)
+results
+```
+
+
+```{r Q4.1.2 Imax=5}
+settings=list(K=3, # number of pack sizes
+	n=c(2,6,0), # number of  units in size k, 0 is not buying
+	Imax=5, # maximum inventory
+	tol=1e-8, # error tolerance for convergence
+	iter_max=10000  # maximum  number of iterations
+	)
+
+results=value_function_iteration(settings, param, price)
+results
+```
