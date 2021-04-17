@@ -395,8 +395,48 @@ merger_analysis = function(lambda1, lambda2) {
   ))
   
 }
+#merger_analysis(1,1)['profits']
+merger_analysis(1,1)$profits[1]
 
-merger_analysis(1,1)
+lambdas = seq(0.5,1.5, by = 0.1)
+
+
+record = rep(c(0,0,0), 121 )
+record = array(record, dim = c(121,3))
+#record[1,]
+
+
+row = 1
+for (i in lambdas) {
+  for (j in lambdas) {
+    profit_aftermerge = merger_analysis(i,j)$profits[1]
+    record[row,1] = i
+    record[row,2] = j
+    record[row,3] = profit_aftermerge
+    row = row + 1
+  }
+  
+}
+record
+```
+
+
+```{r Q3.2.1}
+library("ggplot2")
+
+
+record1 = as.data.frame(record)
+
+
+names(record1) = c ("lambda1" , "lambda2", "profit_after_merge")
+
+
+record1$merge = record1$profit_after_merge >  77.14225-24.18015
+record1
+ggplot(record1, aes(x=lambda1, y=lambda2)) + geom_point(aes(size=profit_after_merge, color = merge))
+
+
+
 ```
 
 
