@@ -400,7 +400,7 @@ merger_analysis(1,1)
 ```
 
 
-```{r q4.1 Imax=20}
+```{r Q4 original params}
 # set up
 settings=list(K=3, # number of pack sizes
 	n=c(2,6,0), # number of  units in size k, 0 is not buying
@@ -456,10 +456,10 @@ Bellman_operator=function(value_0,settings,param,price){
 	for (k in 1:(settings$K)){
 	  # update inventory
 		inventory_new0=inventory+settings$n[k]
-		# inventory_new=inventory_new0-1
-		# inventory_new[inventory_new<0]=0
-		# inventory_new[inventory_new>settings$Imax]=settings$Imax
-		inventory_new = min(settings$Imax, max(0, inventory_new0-1))
+		inventory_new=inventory_new0-1
+		inventory_new[inventory_new<0]=0
+		inventory_new[inventory_new>settings$Imax]=settings$Imax
+		# inventory_new = min(settings$Imax, max(0, inventory_new0-1))
 		
 		# Calculate utility of curr inventory
 		utility=param$delta*(inventory_new0>0)-param$c*inventory_new
@@ -485,14 +485,58 @@ results
 ```
 
 
-```{r Q4.1.2 Imax=5}
-settings=list(K=3, # number of pack sizes
+```{r Q4.1 Imax=5}
+new_settings=list(K=3, # number of pack sizes
 	n=c(2,6,0), # number of  units in size k, 0 is not buying
 	Imax=5, # maximum inventory
 	tol=1e-8, # error tolerance for convergence
 	iter_max=10000  # maximum  number of iterations
 	)
 
-results=value_function_iteration(settings, param, price)
+results=value_function_iteration(new_settings, param, price)
+results
+```
+
+```{r Q4.2 discount=0.5}
+new_param_1=list(beta=0.5,
+	alpha=4, # price sensitivity
+	delta=10, # consumption utility
+	c=0.05 # cost for holding inventory
+	)
+results=value_function_iteration(settings, new_param_1, price)
+results
+```
+
+```{r Q4.3.1 price coeff larger}
+new_param_2=list(beta=0.99,
+	alpha=6, # price sensitivity: 4 -> 6
+	delta=10, # consumption utility
+	c=0.05 # cost for holding inventory
+	)
+results=value_function_iteration(settings, new_param_2, price)
+results
+```
+
+```{r Q4.3.2 price coeff smaller}
+new_param_3=list(beta=0.99,
+	alpha=2, # price sensitivity: 4 -> 2
+	delta=10, # consumption utility
+	c=0.05 # cost for holding inventory
+	)
+results=value_function_iteration(settings, new_param_3, price)
+results
+```
+
+
+```{r }
+new_price=list(
+	L=3, # number of price levels
+	prices=data.frame(price_norm=c(2,5,0),discount_1=c(1.4,3.5,0),discount_2=c(0.8, 2, 0)),
+	# discount_1: 70%, discount_2: 40%
+	#K-by-L, normal prices and promotion prices
+	prob=c(0.8, 0.1, 0.1) # probability of different price levels.
+	)
+
+results=value_function_iteration(settings, param, new_price)
 results
 ```
