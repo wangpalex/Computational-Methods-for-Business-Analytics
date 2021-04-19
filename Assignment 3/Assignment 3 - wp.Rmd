@@ -424,19 +424,13 @@ record
 ```{r Q3.2.1}
 library("ggplot2")
 
-
 record1 = as.data.frame(record)
 
-
 names(record1) = c ("lambda1" , "lambda2", "profit_after_merge")
-
 
 record1$merge = record1$profit_after_merge >  77.14225-24.18015
 record1
 ggplot(record1, aes(x=lambda1, y=lambda2)) + geom_point(aes(size=profit_after_merge, color = merge))
-
-
-
 ```
 
 
@@ -537,6 +531,18 @@ results=value_function_iteration(new_settings, param, price)
 results
 ```
 
+
+Observation:
+
+When max inventory = 5, all of the maximum expected sum of discounted utility (abbreviated as utility value below) is less than those when inventory = 20. 
+
+As for the choices, for max inventory = 20, it is more likely for the customer to opt for choice 3 (not buying) when current stock is higher than a threshold; secondly, for max inventory = 20, the optimal strategy suggests not to opt for choice 1 (small package).
+
+
+Explanation: 
+
+Generally, the utility value of choice 2 (large package) is higher than that of choice 1 (small package). When max inventory = 20, the customer never opt for choice 1, but when max inventory = 5, the customer seldom have chances to opt for choice 2, which might be the reason that the later has lower utility value at convergence. 
+
 ```{r Q4.2 discount=0.5}
 new_param_1=list(beta=0.5,
 	alpha=4, # price sensitivity
@@ -547,9 +553,11 @@ results=value_function_iteration(settings, new_param_1, price)
 results
 ```
 
+
+
 ```{r Q4.3.1 price coeff larger}
 new_param_2=list(beta=0.99,
-	alpha=6, # price sensitivity: 4 -> 6
+	alpha=12, # price sensitivity: 4 -> 6
 	delta=10, # consumption utility
 	c=0.05 # cost for holding inventory
 	)
@@ -568,7 +576,7 @@ results
 ```
 
 
-```{r }
+```{r Q4.4}
 new_price=list(
 	L=3, # number of price levels
 	prices=data.frame(price_norm=c(2,5,0),discount_1=c(1.4,3.5,0),discount_2=c(0.8, 2, 0)),
