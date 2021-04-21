@@ -208,10 +208,15 @@ The preference for JustGrab (j = 1) relative to not choosing any services is hig
 The preference for GrabShare (j = 2) relative to not choosing any services is lower i.e. GrabShare is a less attractive option / generates lower utility than not choosing any (outside option).
 
 
+## Q2.2 
+Endogeneity issue:
+Demand for GrabShare is unobserved, being an omitted variable which results in the endogeneity issue. During the morning peak hours when many people rush for school and work, the demand for GrabShare is high. This increase in demand leads to price surge, which results in higher price. Thus, demand for GrabShare is correlated with price2. Also, higher demand implies higher utility gained by customer once they obtain the GrabShare service, which affects customer choice. This suggests demand affects choice. Therefore, omitting the demand variable in the model will lead to omitted vairable bias, resulting in endogeneity.
+
+Solution:
+Demand for GrabShare is reflected by surge2 which is demand-driven. Because the underlying demand is unobserved to us, we can include surge2 in the model instead. The solution is to use surge as an intrumental variable. Surge pricing only affects customer's utility level / choice only through the final price. Therefore, surge price is a good intrumental variable when running regression of utility on price.
+
 ```{r Q2.2}
 data2$sales = 1
-# data2$surge_1 = as.factor(data2$surge_1)
-# data2$surge_2 = as.factor(data2$surge_2)
 
 mkt_share=aggregate(sales~p1+p2+surge_1+surge_2+choices, data=data2, FUN=sum)
 mkt_share$total=ave(mkt_share$sales,by=list(mkt_share$p1,mkt_share$p2,mkt_share$surge_1,mkt_share$surge_2),FUN=sum)
@@ -235,6 +240,7 @@ logistic_regression=lm(log_odds~price+product,lm_dta)
 iv_reg=ivreg(log_odds ~ price+product|surge+product, data=lm_dta)
 stargazer(logistic_regression,iv_reg, type="text",omit.stat=c("f"))
 ```
+
 beta0 = -0.213
 beta1 = 1.685
 beta2 = 1.685 - 2.557
