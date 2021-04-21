@@ -383,7 +383,14 @@ c(N*prob_1(price1), N*prob_2(price2), N*prob_3(price3))
 sapply(c(N*prob_1(price1), N*prob_2(price2), N*prob_3(price3)), cost)
 # profits
 c(-profit_1(c(price1)),-profit_2(c(price2)),-profit_3(c(price3)))
+
 ```
+The prices of the three products before merge are 42.47629 30.04197 42.47629.
+The sales of the three products before merge are 3.313246 1.769962 3.313246 (million).
+The cost of the three products before merge is 63.59215 77.35330 63.59215 (million).
+The profits of the three products before merge is 77.14225 -24.18015  77.14225.
+
+
 
 ```{r Q3.1.2 after-merge}
 cost_merged = function(s1,s2,lambda1=1,lambda2=1) {
@@ -419,9 +426,20 @@ c(N*prob_1(price1), N*prob_2(price2),N*prob_3(price3))
 # costs
 c(cost_merged(N*prob_1(price1), N*prob_2(price2)), cost(N*prob_3(price3)))
 # profits
-c(-profit_merged(c(prices[1], prices[2])), -profit_3(price3))
+c(-profit_merged(c(price1, price1)), -profit_3(price3))
 
 ```
+If firm 3’s price is held constant:
+
+- The prices of the three products after merge are 50.38601 46.79862 42.47629.
+- The sales of the three products after merge are 3.038511 1.244818 3.852256 (million).
+
+- The cost of the merge and firm 3 after merge is 148.81552  59.90829 (million).
+- The profits of the merge and firm 3 after merge is 52.9621 103.7213.
+
+Compared with the pre-merger equilibrium,
+the prices of product 1 and 2 increase; sales of product 1 and 2 decreases, sales of product 3 increases; the sum of cost of firm 1 and 2 increases from 63.59215+77.35330 = 140.9454 to 148.81552 and the cost of firm 3 decrease.
+The profit of the merge increases from 77.14225-24.18015 = 52.9621 to 62.29782; the profit of firm 3 increases
 
 ```{r Q3.2.1}
 i = 0
@@ -460,8 +478,19 @@ c(cost_merged(N*prob_1(price1),N*prob_2(price2)), cost(N*prob_3(price3)))
 # profits
 c(-profit_merged(c(price1, price2)),-profit_3(c(price3)))
 ```
+If firm 3 responds as predicted by a simultaneous move pricing game:
 
-```{r Q3.2.1}
+- The prices of the three products after merge are 51.45059 47.79469 45.91185.
+- The sales of the three products after merge are 3.100972 1.273021 3.661517(million).
+- The cost of the merge and firm 3 after merge is 148.00072  61.14547 (million).
+- The profits of the merge and firm 3 after merge is 72.38972 106.96156.
+
+Compared with the answer in part I:
+- prices of product 1 and 2 increase and price of product 3 increases.
+- sales of product 1 and 2 increase and sales of price 3 decreases.
+- cost of merge decreases and the cost of firm 3 increases.
+- The profits of the merge increases and the profit of firm 3 decreases
+```{r Q3.2.2}
 merger_analysis = function(lambda1, lambda2) {
   cost_merged = function(s1,s2) {
     return(lambda1*cost(s1) + lambda2*cost(s2))
@@ -549,7 +578,7 @@ record
 ```
 
 
-```{r Q3.2.1}
+```{r Q3.2.2}
 library("ggplot2")
 
 record1 = as.data.frame(record)
