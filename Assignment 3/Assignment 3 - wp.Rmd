@@ -391,14 +391,14 @@ sapply(c(N*prob_1(price1), N*prob_2(price2), N*prob_3(price3)), cost)
 c(-profit_1(c(price1)),-profit_2(c(price2)),-profit_3(c(price3)))
 
 ```
-The prices of the three products before merge are 42.47629 30.04197 42.47629.
-The sales of the three products before merge are 3.313246 1.769962 3.313246 (million).
-The cost of the three products before merge is 63.59215 77.35330 63.59215 (million).
-The profits of the three products before merge is 77.14225 -24.18015  77.14225.
+The prices of the three products before merger are 42.47629 30.04197 42.47629.
+The sales of the three products before merger are 3.313246 1.769962 3.313246 (million).
+The cost of the three products before merger is 63.59215 77.35330 63.59215 (million).
+The profits of the three products before merger is 77.14225 -24.18015  77.14225.
 
 
 
-```{r Q3.1.2 after-merge}
+```{r Q3.1.2 post-merger}
 cost_merged = function(s1,s2,lambda1=1,lambda2=1) {
   return(lambda1*cost(s1) + lambda2*cost(s2))
 }
@@ -437,17 +437,17 @@ c(-profit_merged(c(price1, price1)), -profit_3(price3))
 ```
 If firm 3’s price is held constant:
 
-- The prices of the three products after merge are 50.38601 46.79862 42.47629.
-- The sales of the three products after merge are 3.038511 1.244818 3.852256 (million).
+- The prices of the three products after merger are 50.38601 46.79862 42.47629.
+- The sales of the three products after merger are 3.038511 1.244818 3.852256 (million).
 
-- The cost of the merge and firm 3 after merge is 148.81552  59.90829 (million).
-- The profits of the merge and firm 3 after merge is 52.9621 103.7213.
+- The cost of the post-merger firm and firm 3 after merger is 148.81552  59.90829 (million).
+- The profits of the post-merger firm and firm 3 after merger is 52.9621 103.7213.
 
 Compared with the pre-merger equilibrium,
 the prices of product 1 and 2 increase; sales of product 1 and 2 decreases, sales of product 3 increases; the sum of cost of firm 1 and 2 increases from 63.59215+77.35330 = 140.9454 to 148.81552 and the cost of firm 3 decrease.
 The profit of the merge increases from 77.14225-24.18015 = 52.9621 to 62.29782; the profit of firm 3 increases
 
-```{r Q3.2.1}
+```{r Q3.2.a}
 i = 0
 error=1
 Iter=1000
@@ -486,17 +486,17 @@ c(-profit_merged(c(price1, price2)),-profit_3(c(price3)))
 ```
 If firm 3 responds as predicted by a simultaneous move pricing game:
 
-- The prices of the three products after merge are 51.45059 47.79469 45.91185.
-- The sales of the three products after merge are 3.100972 1.273021 3.661517(million).
-- The cost of the merge and firm 3 after merge is 148.00072  61.14547 (million).
-- The profits of the merge and firm 3 after merge is 72.38972 106.96156.
+- The prices of the three products after merger are 51.45059 47.79469 45.91185.
+- The sales of the three products after merger are 3.100972 1.273021 3.661517(million).
+- The cost of the merge and firm 3 after merger is 148.00072  61.14547 (million).
+- The profits of the post-merger firm and firm 3 after merger is 72.38972 106.96156.
 
 Compared with the answer in part I:
-- prices of product 1 and 2 increase and price of product 3 increases.
-- sales of product 1 and 2 increase and sales of price 3 decreases.
-- cost of merge decreases and the cost of firm 3 increases.
-- The profits of the merge increases and the profit of firm 3 decreases
-```{r Q3.2.2}
+- The prices of product 1 and 2 increase and price of product 3 increases.
+- The sales of product 1 and 2 increase and sales of price 3 decreases.
+- The cost of the post-merger firm decreases and the cost of firm 3 increases.
+- The profits of the post-merger firm increases and the profit of firm 3 decreases
+```{r Q3.2.b}
 merger_analysis = function(lambda1, lambda2) {
   cost_merged = function(s1,s2) {
     return(lambda1*cost(s1) + lambda2*cost(s2))
@@ -558,7 +558,8 @@ merger_analysis = function(lambda1, lambda2) {
   ))
   
 }
-#merger_analysis(1,1)['profits']
+
+#check its consistency with 3.2.a
 merger_analysis(1,1)$profits[1]
 
 lambdas = seq(0.5,1.5, by = 0.1)
@@ -566,7 +567,6 @@ lambdas = seq(0.5,1.5, by = 0.1)
 
 record = rep(c(0,0,0), 121 )
 record = array(record, dim = c(121,3))
-#record[1,]
 
 
 row = 1
@@ -580,7 +580,7 @@ for (i in lambdas) {
   }
   
 }
-record
+#record
 ```
 
 
@@ -595,6 +595,10 @@ record1$merge = record1$profit_after_merge >  77.14225-24.18015
 record1
 ggplot(record1, aes(x=lambda1, y=lambda2)) + geom_point(aes(size=profit_after_merge, color = merge))
 ```
+Profits for different values of \lambda_1 and \lambda_2 with the step of 0.1 from 0.5 to 1.5 are calculated. 
+These profits are plotted in a scatter plot with x axis being the value of \lambda_1 and y axis being the value of \lambda_2. 
+The size of the point represents the quantity of the merger's profit and the color represents whether the profit of firm 1 and 2 increases after merger. Blue means increase which indicates that under the \lambda_1 and \lambda_2 of a blue point, the merge should be conducted while red means decrease which indicates that under the \lambda_1 and \lambda_2 of a red point, the merge should not be conducted. 
+
 
 
 ```{r Q4 original params}
