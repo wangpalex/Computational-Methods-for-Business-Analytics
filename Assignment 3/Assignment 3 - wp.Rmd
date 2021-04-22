@@ -1,6 +1,10 @@
 ---
 title: "Assignment 3"
-author: "Wang Pei"
+author:
+- Gao Haochun A0194525Y
+- Ge Siqi A0194550A
+- Wang Pei A0194486M
+- Wei Yifei A0203451W
 date: "4/3/2021"
 output: pdf_document
 ---
