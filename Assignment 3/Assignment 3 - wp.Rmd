@@ -20,14 +20,14 @@ library(lfe)
 library(stargazer)
 library(evd) # gumbel distribution
 library(stats4) # mle
-library(AER)
+library(AER) # ivreg
 ```
 
 # Question 1
 ### The sales department plans to run a large promotion. They provide you data obtained from a small trial (“hw3q1.csv”). They want to understand the effectiveness of the promotion. (Hint: the effectiveness can be different for different types of consumers.)
 
 ```{r load_data}
-df1 <- read_csv("hw3q1.csv")
+df1 <- read.csv("hw3q1.csv")
 df1$age <- as.factor(df1$age)  ## Observe 3 age categories: 20-30, 30-40, 40+
 df1$received_coupon <- as.factor(df1$received_coupon)
 df1$after <- as.factor(df1$after)
@@ -50,7 +50,7 @@ nrow(df1_40[df1_40$received_coupon==1,])/nrow(df1_40)  # 50% each for treatment 
 ### Calculate the treatment effects. Verify your results using felm. Are they the same as before-vs-after comparisons or treated-vs-non-treated comparisons?
 
 Calculate the treatment effects using difference-in-differences (DID) estimator:
-Treatment effect = (Y_treated, after - Y_nontreated, after) - (Y_treated, before - Y_nontreated, before)
+$$treatment\ \ effect = (Y_{treated, after} - Y_{nontreated, after}) - (Y_{treated, before} - Y_{nontreated, before})$$
 
 ```{r DID}
 # Treatment effect for all types of customers
@@ -74,76 +74,90 @@ sep_diff
 (12.00626 - 10.71556) - (9.34199 - 9.27426)   # 1.22297
 ```
 
-Answer: The average treatment effect for all types of customers i.e. across all age groups is 0.86932. The treatment effects differ for customers from different age groups. For customers aged from 20 to 30, the treatment effect is 0.48614. For customers aged from 30 to 40, the treatment effect is 0.89885. For customers aged 40 and above, the treatment effect is 1.22297.
+**Answer:**
+- The average treatment effect for all types of customers i.e. across all age groups is 0.86932. 
+- The treatment effects differ for customers from different age groups. 
+- For customers aged from 20 to 30, the treatment effect is 0.48614. 
+- For customers aged from 30 to 40, the treatment effect is 0.89885. For customers aged 40 and above, the treatment effect is 1.22297.
 
-
-
-Verify the results using felm:
+**Verify the results using felm:**
 felm can be used to verify the results of average treatment effect obtained using before-vs-after comparisons and treated-vs-nontreated comparisons:
 
 1. felm to verify results of before-vs-after comparisons
-```{r felm}
+```{r felm1}
 lm1 <- felm(revenue ~ after | received_coupon, data = df1_2030)
 lm2 <- felm(revenue ~ after | received_coupon, data = df1_3040)
 lm3 <- felm(revenue ~ after | received_coupon, data = df1_40)
 stargazer(lm1, lm2, lm3, type="text",omit.stat=c("LL","ser","f"), model.numbers=TRUE)
 ```
-For customers aged from 20 to 30, the coefficient of the binary variable after is 1.711.
-For customers aged from 30 to 40, the coefficient of the binary variable after is 1.100.
-For customers aged 40 and above, the coefficient of the binary variable after is 2.053.
 
-Using before-vs-after comparisons: avergae of Y_after - average of Y_before
+- For customers aged from 20 to 30, the coefficient of the binary variable after is 1.711.
+- For customers aged from 30 to 40, the coefficient of the binary variable after is 1.100.
+- For customers aged 40 and above, the coefficient of the binary variable after is 2.053.
+
+Using before-vs-after comparisons: $mean(Y_{after}) - mean(Y_{before})$
 ```{r before-after}
 # Age 20-30
+# mean(df1_2030[df1_2030["after"]==1, "revenue"]) - mean(df1_2030[df1_2030["after"]==0, "revenue"])
 (12.32244 + 11.78103) / 2 - (10.36813 + 10.31286) / 2   # 1.71124
 
 # Age 30-40
+# mean(df1_3040[df1_3040["after"]==1, "revenue"]) - mean(df1_3040[df1_3040["after"]==0, "revenue"])
 (10.32048 + 9.10888) / 2 - (8.77142 + 8.45867) / 2   # 1.099635
 
 # Age 40+
+# mean(df1_40[df1_40["after"]==1, "revenue"]) - mean(df1_40[df1_40["after"]==0, "revenue"])
 (12.00626 + 10.71556) / 2 - (9.34199 + 9.27426) / 2   # 2.052785
 ```
-For customers aged from 20 to 30, the before-vs-after comparison is 1.71124.
-For customers aged from 30 to 40, the before-vs-after comparison is 1.099635.
-For customers aged 40 and above, the before-vs-after comparison is 2.052785.
+
+- For customers aged from 20 to 30, the before-vs-after comparison is 1.71124.
+- For customers aged from 30 to 40, the before-vs-after comparison is 1.099635.
+- For customers aged 40 and above, the before-vs-after comparison is 2.052785.
 
 Thus, the results of felm which makes treatment (received_coupon) a fixed effect are consistent with the results of before-vs-after comparisons for different age groups.
 
 
 2. felm to verify results of treated-vs-nontreated comparisons
-```{r felm}
+```{r felm2}
 lm4 <- felm(revenue ~ received_coupon | after, data = df1_2030)
 lm5 <- felm(revenue ~ received_coupon | after, data = df1_3040)
 lm6 <- felm(revenue ~ received_coupon | after, data = df1_40)
 stargazer(lm4, lm5, lm6, type="text",omit.stat=c("LL","ser","f"), model.numbers=TRUE)
 ```
-For customers aged from 20 to 30, the coefficient of the binary variable received_coupon is 0.298.
-For customers aged from 30 to 40, the coefficient of the binary variable received_coupon is 0.762.
-For customers aged 40 and above, the coefficient of the binary variable received_coupon is 0.679.
+
+- For customers aged from 20 to 30, the coefficient of the binary variable received_coupon is 0.298.
+- For customers aged from 30 to 40, the coefficient of the binary variable received_coupon is 0.762.
+- For customers aged 40 and above, the coefficient of the binary variable received_coupon is 0.679.
 
 Using treated-vs-nontreated comparisons: avergae of Y_treated - average of Y_nontreated
 ```{r treated-nontreated}
 # Age 20-30
+# mean(df1_2030[df1_2030["received_coupon"]==1, "revenue"]) - mean(df1_2030[df1_2030["received_coupon"]==0, "revenue"])
 (10.36813 + 12.32244) / 2 - (10.31286 + 11.78103) / 2   # 0.29834
 
 # Age 30-40
+# mean(df1_3040[df1_3040["received_coupon"]==1, "revenue"]) - mean(df1_3040[df1_3040["received_coupon"]==0, "revenue"])
 (8.77142 + 10.32048) / 2 - (8.45867 + 9.10888) / 2   # 0.762175
 
 # Age 40+
+# mean(df1_40[df1_40["received_coupon"]==1, "revenue"]) - mean(df1_40[df1_40["received_coupon"]==0, "revenue"])
 (9.34199 + 12.00626) / 2 - (9.27426 + 10.71556) / 2   # 0.679215
 ```
-For customers aged from 20 to 30, the treated-vs-nontreated comparison is 0.29834.
-For customers aged from 30 to 40, the treated-vs-nontreated comparison is 0.762175.
-For customers aged 40 and above, the treated-vs-nontreated comparison is 0.679215.
+
+- For customers aged from 20 to 30, the treated-vs-nontreated comparison is 0.29834.
+- For customers aged from 30 to 40, the treated-vs-nontreated comparison is 0.762175.
+- For customers aged 40 and above, the treated-vs-nontreated comparison is 0.679215.
 
 Thus, the results of felm which makes time (after) a fixed effect are consistent with the results of treated-vs-nontreated comparisons for different age groups.
 
+**Explanation:**
+felm can verify before-vs-after comparisons and treated-vs-nontreated comparisons, but it cannot verify the treatement effects computed using difference-in-differences (DID) estimator. This is because felm fits a linear model by controlling for fixed effects but DID does not require to fix any variation.
 
-felm can verify before-vs-after comparisons and treated-vs-nontreated comparisons, but it cannot verify the treatement effects computed using difference-in-differences (DID) estimator. This is because felm fits a linear model by controling for fixed effects but DID does not require to fix any variation.
 - In the case of using felm to verify before-vs-after comparisons:
-felm makes treatment (received_coupon) a fixed effect. received_coupon controls for any unobserved treatment-specific heterogeneity that is is persistent over the time of experiment. Thus, there is no time trend in the model by setting received_coupon a fixed effect. This satisifies the assumption of before-vs-after comparisons. The felm results are consistent with before-vs-after comparisons.
+felm makes treatment (received_coupon) a fixed effect. received_coupon controls for any unobserved treatment-specific heterogeneity that is is persistent over the time of experiment. Thus, there is no time trend in the model by setting received_coupon a fixed effect. This satisfies the assumption of before-vs-after comparisons. The felm results are consistent with before-vs-after comparisons.
+
 - In the case of using felm to verify treated-vs-nontreated comparisons:
-felm makes time (after) a fixed effect. after controls for any unobserved time-specific trend that is common across all the customers. Thus, each customers have the same probability of being chosen as treatment and the experiment can be assumed to be random assignment of treatment. This satisifies the assumption of treated-vs-nontreated comparisons. The felm results are consistent with treated-vs-nontreated comparisons.
+felm makes time (after) a fixed effect. after controls for any unobserved time-specific trend that is common across all the customers. Thus, each customers have the same probability of being chosen as treatment and the experiment can be assumed to be random assignment of treatment. This satisfies the assumption of treated-vs-nontreated comparisons. The felm results are consistent with treated-vs-nontreated comparisons.
 
 However, difference-in-differences does not require any of the above assumptions. The two assumption are violated in the sample data: there is a time trend and the assignment of treatment is not random. Thus, treatment effects measured using DID estimators are different from both before-vs-after comparisons and treated-vs-nontreated comparisons. felm is unable to verfiy the treatment effects computed using DID estimators.
 
@@ -152,28 +166,36 @@ However, difference-in-differences does not require any of the above assumptions
 ### The cost of the promotion is $0.8 per user. Provide specific advices to your colleague and estimate the gain (if any) from the promotion.
 
 From Part I:
-The average treatment effect for age group 20-30 is 0.48614, which is the revenue gain per user in the age group of 20-30.
-The average treatment effect for age group 30-40 is 0.89885, which is the revenue gain per user in the age group of 30-40.
-The average treatment effect for age group 40+ is 1.22297, which is the revenue gain per user in the age group of 40+.
+- The average treatment effect for age group 20-30 is 0.48614, which is the revenue gain per user in the age group of 20-30.
+- The average treatment effect for age group 30-40 is 0.89885, which is the revenue gain per user in the age group of 30-40.
+- The average treatment effect for age group 40+ is 1.22297, which is the revenue gain per user in the age group of 40+.
 
 Given that the cost of the promotion is $0.8 per user, below are the gain from the promotion for each age group of customers and some findings:
+
 (1) It is profitable to run this promotion among age groups 30-40 and 40+, and 40+ is the most profitable age group.
 Profit gain per user for age group 30-40 = 0.89885 - 0.8 = 0.09885
 Profit gain per user for age group 40+ = 1.22297 - 0.8 = 0.42297
-2) It is unprofitable to run this promotion among age group 20-30.
+
+(2) It is unprofitable to run this promotion among age group 20-30.
 Profit loss per user for age group 20-30 = 0.48614 - 0.8 = -0.31386
-3) Overall gain from the promotion based on the small trial of 12000 by combining 3 age groups is 
+
+(3) Overall gain from the promotion based on the small trial of 12000 by combining 3 age groups is 
 4000 * 0.09885 + 4000 * 0.42297 + 4000 * (-0.31386) = 831.84
 
-Here are some advices to our colleagues:
-(1) It is favourable to run the promotion among age groups of 30-40 and 40+, and the company should promote the coverage of the promotion especially among those aged 40+ i.e. reach out more customers aged 30-40 and 40+, issue more vouchers to them, and encourage them to particpate in the promotion.
-(2) It is unfavourable to run the promotion for age group 20-30, and the company should reduce the coverage of the promotion among those aged 20-30 i.e. issue less vouchers to those aged 20-30.
+Here are some advice to our colleagues:
+
+(1) It is favorable to run the promotion among age groups of 30-40 and 40+, and the company should promote the coverage of the promotion especially among those aged 40+ i.e. reach out more customers aged 30-40 and 40+, issue more vouchers to them, and encourage them to participate in the promotion.
+
+(2) It is unfavorable to run the promotion for age group 20-30, and the company should reduce the coverage of the promotion among those aged 20-30 i.e. issue less vouchers to those aged 20-30.
+
 (3) The company should issue vouchers based on customers' age. This can be achieved by showing ID to qualify for claiming the voucher or use internal data to filter the targeted customers and only issue vouchers to those aged 30-40 and 40+.
 
 
-# Q2
+# Question 2
 
-```{r Q2}
+## Part I
+### Estimate consumer choice model using MLE. Discuss the meaning of your estimates.
+```{r Q2 load data}
 data2 = read.csv("hw3q2.csv")
 ```
 
@@ -194,7 +216,8 @@ mle1 = mle(lik,
 	start = runif(3,-1,0),  # random initialization
 	method = "L-BFGS-B", 
 	lower = c(-10, -10,-10),
-  upper = c(-0.00001, 10, 10))  # beta0, coeff of price, should be negtive
+  upper = c(-0.00001, 10, 10) # beta0, coeff of price, should be negative
+)  
 
 summary(mle1)
 #  beta0       beta1        beta2
@@ -212,20 +235,24 @@ The preference for JustGrab (j = 1) relative to not choosing any services is hig
 The preference for GrabShare (j = 2) relative to not choosing any services is lower i.e. GrabShare is a less attractive option / generates lower utility than not choosing any (outside option).
 
 
-## Q2.2 
-Endogeneity issue:
-Demand for GrabShare is unobserved, being an omitted variable which results in the endogeneity issue. During the morning peak hours when many people rush for school and work, the demand for GrabShare is high. This increase in demand leads to price surge, which results in higher price. Thus, demand for GrabShare is correlated with price2. Also, higher demand implies higher utility gained by customer once they obtain the GrabShare service, which affects customer choice. This suggests demand affects choice. Therefore, omitting the demand variable in the model will lead to omitted vairable bias, resulting in endogeneity.
+## Part II
+### Discuss any potential endogeneity issue. Implement an estimation procedure that solves the endogeneity issue.
 
-Solution:
-Demand for GrabShare is reflected by surge2 which is demand-driven. Because the underlying demand is unobserved to us, we can include surge2 in the model instead. The solution is to use surge as an intrumental variable. Surge pricing only affects customer's utility level / choice only through the final price. Therefore, surge price is a good intrumental variable when running regression of utility on price.
+**Endogeneity issue:**
+Demand for GrabShare is unobserved, being an omitted variable which results in the endogeneity issue. During the morning peak hours when many people rush for school and work, the demand for GrabShare is high. This increase in demand leads to price surge, which results in higher price. Thus, demand for GrabShare is correlated with price2. Also, higher demand implies higher utility gained by customer once they obtain the GrabShare service, which affects customer choice. This suggests demand affects choice. Therefore, omitting the demand variable in the model will lead to omitted vairiable bias, resulting in endogeneity.
 
-```{r Q2.2}
+![Proposed causal diagram](Q2.png)
+
+**Proposed solution:**
+Demand for GrabShare is reflected by surge2 which is demand-driven. Because the underlying demand is unobserved to us, we can include surge2 in the model instead. The solution is to use surge as an instrumental variable. Surge pricing only affects customer's utility level / choice only through the final price. Therefore, surge price is a good instrumental variable when running regression of utility on price.
+
+```{r Q2.2 ivreg of logistic model}
 data2$sales = 1
 
 mkt_share=aggregate(sales~p1+p2+surge_1+surge_2+choices, data=data2, FUN=sum)
-mkt_share$total=ave(mkt_share$sales,by=list(mkt_share$p1,mkt_share$p2,mkt_share$surge_1,mkt_share$surge_2),FUN=sum)
+mkt_share$total=ave(mkt_share$sales,
+                    by=list(mkt_share$p1,mkt_share$p2,mkt_share$surge_1,mkt_share$surge_2),FUN=sum)
 mkt_share$share=mkt_share$sales/mkt_share$total
-
 
 iop_dta=subset(mkt_share,choices!=0)#inside options
 oop_dta=subset(mkt_share,choices==0)[,c("p1","p2","share")]#outside option
@@ -241,18 +268,26 @@ lm_dta[1:20,]
 lm_dta$surge = (lm_dta$choices==1)*(lm_dta$surge_1) + (lm_dta$choices==2)*(lm_dta$surge_2)
 
 logistic_regression=lm(log_odds~price+product,lm_dta)
-iv_reg=ivreg(log_odds ~ price+product|surge+product, data=lm_dta)
+iv_reg=ivreg(log_odds ~ price+product|surge+product, data=lm_dta)  # surge as iv for price
 stargazer(logistic_regression,iv_reg, type="text",omit.stat=c("f"))
 ```
 
-beta0 = -0.213
-beta1 = 1.685
-beta2 = 1.685 - 2.557
+The parameters are found to be:
+
+- $beta_0 = -0.213$
+
+- $beta_1 = 1.685$
+
+- $beta_2 = 1.685 - 2.557 = -0.872$
+
+## Part III
+### Calculate optimal $p_j$ if product j is the only product in the market, or if both products are in the market. Explain why the optimal prices are different.
 
 ```{r Q2.3.1 one product}
 beta0 = -0.213
 beta1 = 1.685
-beta2 = 1.685 - 2.557
+beta2 = -0.872
+
 # JustGrab only
 profit_function1 = function(price1) {
   Profit1 = price1 * (exp(beta1 + price1 * beta0) / (1 + exp(beta1 + price1 * beta0)))
@@ -267,27 +302,31 @@ profit_function2 = function(price2) {
 	return(-Profit2)
 }
 
-# Prices
 p1 = optim(c(1), profit_function1, method = "BFGS")$par
 p2 = optim(c(1), profit_function2, method = "BFGS")$par
+
+# Prices
 c(p1, p2)
 # Profits
 c(-profit_function1(p1), -profit_function2(p2))
 ```
-
+- JustGrab is the only product: optimal price is 8.681130, with profit 3.9852603.
+- GrabShare is the only product: optimal price is 5.326119. with profit 0.6312835.
 
 ```{r Q2.3.2 two products}
 beta0 = -0.213
 beta1 = 1.685
-beta2 = 1.685 - 2.557
+beta2 = -0.872
 
 profit_function3=function(prices){
   price1 = prices[1]
 	price2 = prices[2]
 
-	Profit1 = price1 * (exp(beta1 + price1 * beta0) / (1 + exp(beta1 + price1 * beta0) + exp(beta2 + price2 * beta0)))
+	Profit1 = price1*(exp(beta1 + price1 * beta0) / 
+	                    (1 + exp(beta1 + price1 * beta0) + exp(beta2 + price2 * beta0)))
 
-	Profit2 = price2 * (exp(beta2 + price2 * beta0) / (1 + exp(beta1 + price1 * beta0) + exp(beta2 + price2 * beta0)))
+	Profit2 = price2*(exp(beta2 + price2 * beta0) / 
+	                      (1 + exp(beta1 + price1 * beta0) + exp(beta2 + price2 * beta0)))
 
 	return(-(Profit1+Profit2))
 }
@@ -301,9 +340,16 @@ c(p1,p2)
 # Profit
 -profit_function3(res)
 ```
+- Both products are in the market: optimal prices are 8.842886 and 8.823795 respectively, with total profit 4.147978.
 
+**Explanation for different prices:**
+GrabShare and JustGrab are substitutes, so the company has incentive to increase price both products higher than single product to avoid canibalization effect.
 
+# Question 3
+##Part I
+### Assume that after the merger of firm 1 and firm 2, prices of product 1 and product 2 will be reoptimized as in a multiproduct pricing problem. But firm 3’s price is held constant. Assume that lambda1 = lambda2 = 1. Solve the post-merger market outcome (prices, sales and costs, profits). Compare them with the pre-merger equilibrium.
 
+Pre-merger:
 ```{r Q3.1.1 pre-merger}
 set.seed(37)
 #parameters
@@ -334,21 +380,21 @@ cost = function(s) {
   (s-7)^2 + 50
 }
 
-# objective function  of firm 1
+# objective function of firm 1
 profit_1=function(price1){
   produce1 = N*prob_1(price1)
 	profit = produce1*price1 - cost(produce1)
 	return(-profit)
 }
 
-# objective function  of firm 2
+# objective function of firm 2
 profit_2=function(price2){
   produce2 = N*prob_2(price2)
 	profit = produce2*price2 - cost(produce2)
 	return(-profit)
 }
 
-# objective function  of firm 3
+# objective function of firm 3
 profit_3=function(price3){
   produce3 = N*prob_3(price3)
 	profit = produce3*price3 - cost(produce3)
@@ -362,7 +408,6 @@ Iter=1000
 Tol=1e-10
 prices = c(1,1,1)
 while (i<Iter & error>Tol) {
-
 	i=i+1
 	price1=prices[1]
 	price2=prices[2]
@@ -395,13 +440,12 @@ sapply(c(N*prob_1(price1), N*prob_2(price2), N*prob_3(price3)), cost)
 c(-profit_1(c(price1)),-profit_2(c(price2)),-profit_3(c(price3)))
 
 ```
-The prices of the three products before merger are 42.47629 30.04197 42.47629.
-The sales of the three products before merger are 3.313246 1.769962 3.313246 (million).
-The cost of the three products before merger is 63.59215 77.35330 63.59215 (million).
-The profits of the three products before merger is 77.14225 -24.18015  77.14225.
+- The prices of the three products before merger are 42.47629, 30.04197, 42.47629.
+- The sales of the three products before merger are 3.313246, 1.769962, 3.313246 (million).
+- The cost of the three products before merger is 63.59215, 77.35330, 63.59215 (million).
+- The profits of the three products before merger is 77.14225, -24.18015,  77.14225 (million).
 
-
-
+Post-merger:
 ```{r Q3.1.2 post-merger}
 cost_merged = function(s1,s2,lambda1=1,lambda2=1) {
   return(lambda1*cost(s1) + lambda2*cost(s2))
@@ -439,6 +483,7 @@ c(cost_merged(N*prob_1(price1), N*prob_2(price2)), cost(N*prob_3(price3)))
 c(-profit_merged(c(price1, price1)), -profit_3(price3))
 
 ```
+
 If firm 3’s price is held constant:
 
 - The prices of the three products after merger are 50.38601 46.79862 42.47629.
@@ -447,9 +492,13 @@ If firm 3’s price is held constant:
 - The cost of the post-merger firm and firm 3 after merger is 148.81552  59.90829 (million).
 - The profits of the post-merger firm and firm 3 after merger is 52.9621 103.7213.
 
-Compared with the pre-merger equilibrium,
+Compared with the pre-merger equilibrium:
 the prices of product 1 and 2 increase; sales of product 1 and 2 decreases, sales of product 3 increases; the sum of cost of firm 1 and 2 increases from 63.59215+77.35330 = 140.9454 to 148.81552 and the cost of firm 3 decrease.
 The profit of the merge increases from 77.14225-24.18015 = 52.9621 to 62.29782; the profit of firm 3 increases
+
+## Part II
+### In reality, firm 3 will respond as predicted by a simultaneous move pricing game.
+**a. Still assume that $\lambda_1 = \lambda_2 = 1$. Compute the post-merger market outcome and discuss how it differs from your answer in Part I.**
 
 ```{r Q3.2.a}
 i = 0
@@ -496,10 +545,14 @@ If firm 3 responds as predicted by a simultaneous move pricing game:
 - The profits of the post-merger firm and firm 3 after merger is 72.38972 106.96156.
 
 Compared with the answer in part I:
+
 - The prices of product 1 and 2 increase and price of product 3 increases.
 - The sales of product 1 and 2 increase and sales of price 3 decreases.
 - The cost of the post-merger firm decreases and the cost of firm 3 increases.
 - The profits of the post-merger firm increases and the profit of firm 3 decreases
+
+
+**b. Conduct a merger analysis for different values of $\lambda_1$ and $\lambda_2$.**
 ```{r Q3.2.b}
 merger_analysis = function(lambda1, lambda2) {
   cost_merged = function(s1,s2) {
@@ -560,7 +613,6 @@ merger_analysis = function(lambda1, lambda2) {
     'costs' = c(cost_merged(N*prob_1(price1),N*prob_2(price2)), cost(N*prob_3(price3))),
     'profits'=c(-profit_merged(c(price1, price2)),-profit_3(c(price3)))
   ))
-  
 }
 
 #check its consistency with 3.2.a
@@ -568,10 +620,8 @@ merger_analysis(1,1)$profits[1]
 
 lambdas = seq(0.5,1.5, by = 0.1)
 
-
-record = rep(c(0,0,0), 121 )
+record = rep(c(0,0,0), 121)
 record = array(record, dim = c(121,3))
-
 
 row = 1
 for (i in lambdas) {
@@ -582,30 +632,31 @@ for (i in lambdas) {
     record[row,3] = profit_aftermerge
     row = row + 1
   }
-  
 }
 #record
 ```
-
-
 ```{r Q3.2.2}
 library("ggplot2")
 
 record1 = as.data.frame(record)
 
 names(record1) = c ("lambda1" , "lambda2", "profit_after_merge")
-
-record1$merge = record1$profit_after_merge >  77.14225-24.18015
-record1
+total_profit_before_merge = 77.14225-24.18015
+record1$merge = record1$profit_after_merge > total_profit_before_merge
+tail(record1, 10)
 ggplot(record1, aes(x=lambda1, y=lambda2)) + geom_point(aes(size=profit_after_merge, color = merge))
 ```
-Profits for different values of \lambda_1 and \lambda_2 with the step of 0.1 from 0.5 to 1.5 are calculated. 
-These profits are plotted in a scatter plot with x axis being the value of \lambda_1 and y axis being the value of \lambda_2. 
-The size of the point represents the quantity of the merger's profit and the color represents whether the profit of firm 1 and 2 increases after merger. Blue means increase which indicates that under the \lambda_1 and \lambda_2 of a blue point, the merge should be conducted while red means decrease which indicates that under the \lambda_1 and \lambda_2 of a red point, the merge should not be conducted. 
 
+Profits for different values of $\lambda_1$ and $\lambda_2$ with the step of 0.1 from 0.5 to 1.5 are calculated. 
+These profits are plotted in a scatter plot with x axis being the value of $\lambda_1$ and y axis being the value of $\lambda_2$. 
 
+The size of the point represents the quantity of the merger's profit and the color represents whether the profit of firm 1 and 2 increases after merger. Blue means increase which indicates that under the $\lambda_1$ and $\lambda_2$ of a blue point, the merge should be conducted while red means decrease which indicates that under the $\lambda_1$ and $\lambda_2$ of a red point, the merge should not be conducted. 
 
+# Question 4
+## Part I
+### The effect of maximum capacity on stockpiling behaviour. Set the maximum inventory capacity as 5 and 20 (keep other parameters untouched), respectively. Describe and explain what you observe.
 ```{r Q4 original params}
+# original params
 # set up
 settings=list(K=3, # number of pack sizes
 	n=c(2,6,0), # number of  units in size k, 0 is not buying
@@ -689,8 +740,9 @@ results=value_function_iteration(settings,param,price)
 results
 ```
 
-
-```{r Q4.1 Imax=5}
+### Set maximum inventory capacity as 5
+```{r Q4.1}
+# Imax=5
 new_settings=list(K=3, # number of pack sizes
 	n=c(2,6,0), # number of  units in size k, 0 is not buying
 	Imax=5, # maximum inventory
@@ -709,7 +761,10 @@ Describe and explain the findings:
 
 - For both cases of normal price and promotion, the purchase choices tend to be 3 (not buying) when current inventory is close to maximum. This is because individuals with smaller inventory capacity are more likely to replenish the stock more frequently than those with larger inventory capacity under same rate of consumption. 
 
-```{r Q4.2 discount=0.5}
+## Part II
+### The effect of discount factors on stockpiling behaviour. Set discount factors as 0.5 and 0.99 (keep other parameters untouched), respectively. Describe and explain what you observe.
+```{r Q4.2}
+# discount=0.5
 new_param_1=list(beta=0.5,
 	alpha=4, # price sensitivity
 	delta=10, # consumption utility
@@ -730,7 +785,12 @@ Explanation:
 
 - Based on policy function and Bellman equation, when the discounting factor gets smaller, the maximum expected sum of discounted utility gets smaller.
 
-```{r Q4.3.1 price coeff larger}
+## Part III
+### The effect of price sensitivity on stockpiling behaviour. Change the value of price coefficient (keep other parameters untouched), respectively. Describe and explain what you observe.
+
+### Set price coefficient larger
+```{r Q4.3.1}
+# price coeff larger
 new_param_2=list(beta=0.99,
 	alpha=12, # price sensitivity: 4 -> 12
 	delta=10, # consumption utility
@@ -755,6 +815,8 @@ Explanation:
 
 - When the price sensitivity is lower, the customer cares less about the price, thus the price dis-utility is lower. Based on the Bellman Operator, as a result, when the price dis-utility becomes less negative, the maximum expected sum of discounted utility increases.
 
+## Part IV
+### Note that in the slides, we assume that there are two price levels: normal price and promotion price, which is 60% discount. In this exercise, we assume that there are three price levels: normal price, 70% discount and 40% discount. The probabilities of each price levels are 0.8, 0.1 and 0.1 respectively. Please change the code correspondingly, keeping other parameters untouched. Report and briefly discuss your results.
 
 ```{r Q4.4}
 new_price=list(
