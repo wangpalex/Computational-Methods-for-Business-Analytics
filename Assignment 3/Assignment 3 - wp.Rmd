@@ -241,8 +241,6 @@ The preference for GrabShare (j = 2) relative to not choosing any services is lo
 **Endogeneity issue:**
 Demand for GrabShare is unobserved, being an omitted variable which results in the endogeneity issue. During the morning peak hours when many people rush for school and work, the demand for GrabShare is high. This increase in demand leads to price surge, which results in higher price. Thus, demand for GrabShare is correlated with price2. Also, higher demand implies higher utility gained by customer once they obtain the GrabShare service, which affects customer choice. This suggests demand affects choice. Therefore, omitting the demand variable in the model will lead to omitted vairiable bias, resulting in endogeneity.
 
-![Proposed causal diagram](Q2.png)
-
 **Proposed solution:**
 Demand for GrabShare is reflected by surge2 which is demand-driven. Because the underlying demand is unobserved to us, we can include surge2 in the model instead. The solution is to use surge as an instrumental variable. Surge pricing only affects customer's utility level / choice only through the final price. Therefore, surge price is a good instrumental variable when running regression of utility on price.
 
@@ -488,9 +486,8 @@ If firm 3’s price is held constant:
 
 - The prices of the three products after merger are 50.38601 46.79862 42.47629.
 - The sales of the three products after merger are 3.038511 1.244818 3.852256 (million).
-
 - The cost of the post-merger firm and firm 3 after merger is 148.81552  59.90829 (million).
-- The profits of the post-merger firm and firm 3 after merger is 52.9621 103.7213.
+- The profits of the post-merger firm and firm 3 after merger is 52.9621 103.7213 (million).
 
 Compared with the pre-merger equilibrium:
 the prices of product 1 and 2 increase; sales of product 1 and 2 decreases, sales of product 3 increases; the sum of cost of firm 1 and 2 increases from 63.59215+77.35330 = 140.9454 to 148.81552 and the cost of firm 3 decrease.
