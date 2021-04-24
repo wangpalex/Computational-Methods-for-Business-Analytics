@@ -60,7 +60,7 @@ overall_diff
 # Treatment effect for all types of customers
 (11.549727 - 10.535157) - (9.493847 - 9.348597)   # 0.86932
 
-# Treatment effect for difference types of customers (breakdown)
+# Treatment effect for different types of customers (breakdown)
 sep_diff <- df1 %>% group_by(age, received_coupon, after) %>% summarise(rev_mean = mean(revenue))
 sep_diff
 
@@ -75,6 +75,7 @@ sep_diff
 ```
 
 **Answer:**
+
 - The average treatment effect for all types of customers i.e. across all age groups is 0.86932. 
 - The treatment effects differ for customers from different age groups. 
 - For customers aged from 20 to 30, the treatment effect is 0.48614. 
@@ -83,7 +84,7 @@ sep_diff
 **Verify the results using felm:**
 felm can be used to verify the results of average treatment effect obtained using before-vs-after comparisons and treated-vs-nontreated comparisons:
 
-1. felm to verify results of before-vs-after comparisons
+**1. felm to verify results of before-vs-after comparisons**
 ```{r felm1}
 lm1 <- felm(revenue ~ after | received_coupon, data = df1_2030)
 lm2 <- felm(revenue ~ after | received_coupon, data = df1_3040)
@@ -95,7 +96,7 @@ stargazer(lm1, lm2, lm3, type="text",omit.stat=c("LL","ser","f"), model.numbers=
 - For customers aged from 30 to 40, the coefficient of the binary variable after is 1.100.
 - For customers aged 40 and above, the coefficient of the binary variable after is 2.053.
 
-Using before-vs-after comparisons: $mean(Y_{after}) - mean(Y_{before})$
+**Using before-vs-after comparisons: $mean(Y_{after}) - mean(Y_{before})$**
 ```{r before-after}
 # Age 20-30
 # mean(df1_2030[df1_2030["after"]==1, "revenue"]) - mean(df1_2030[df1_2030["after"]==0, "revenue"])
@@ -117,7 +118,7 @@ Using before-vs-after comparisons: $mean(Y_{after}) - mean(Y_{before})$
 Thus, the results of felm which makes treatment (received_coupon) a fixed effect are consistent with the results of before-vs-after comparisons for different age groups.
 
 
-2. felm to verify results of treated-vs-nontreated comparisons
+**2. felm to verify results of treated-vs-nontreated comparisons**
 ```{r felm2}
 lm4 <- felm(revenue ~ received_coupon | after, data = df1_2030)
 lm5 <- felm(revenue ~ received_coupon | after, data = df1_3040)
@@ -150,8 +151,11 @@ Using treated-vs-nontreated comparisons: avergae of Y_treated - average of Y_non
 
 Thus, the results of felm which makes time (after) a fixed effect are consistent with the results of treated-vs-nontreated comparisons for different age groups.
 
-**Explanation:**
+**Explanations:**
+
 felm can verify before-vs-after comparisons and treated-vs-nontreated comparisons, but it cannot verify the treatement effects computed using difference-in-differences (DID) estimator. This is because felm fits a linear model by controlling for fixed effects but DID does not require to fix any variation.
+
+Difference-in-differences does not require assumptions of no time trend and random assignment of treatment. The two assumption, however, are violated in the sample data: there is a time trend and the assignment of treatment is not random. Thus, treatment effects measured using DID estimators are different from both before-vs-after comparisons and treated-vs-nontreated comparisons. felm is unable to verfiy the treatment effects computed using DID estimators.
 
 - In the case of using felm to verify before-vs-after comparisons:
 felm makes treatment (received_coupon) a fixed effect. received_coupon controls for any unobserved treatment-specific heterogeneity that is is persistent over the time of experiment. Thus, there is no time trend in the model by setting received_coupon a fixed effect. This satisfies the assumption of before-vs-after comparisons. The felm results are consistent with before-vs-after comparisons.
@@ -159,25 +163,25 @@ felm makes treatment (received_coupon) a fixed effect. received_coupon controls 
 - In the case of using felm to verify treated-vs-nontreated comparisons:
 felm makes time (after) a fixed effect. after controls for any unobserved time-specific trend that is common across all the customers. Thus, each customers have the same probability of being chosen as treatment and the experiment can be assumed to be random assignment of treatment. This satisfies the assumption of treated-vs-nontreated comparisons. The felm results are consistent with treated-vs-nontreated comparisons.
 
-However, difference-in-differences does not require any of the above assumptions. The two assumption are violated in the sample data: there is a time trend and the assignment of treatment is not random. Thus, treatment effects measured using DID estimators are different from both before-vs-after comparisons and treated-vs-nontreated comparisons. felm is unable to verfiy the treatment effects computed using DID estimators.
 
 
 ## Part II 
 ### The cost of the promotion is $0.8 per user. Provide specific advices to your colleague and estimate the gain (if any) from the promotion.
 
 From Part I:
-- The average treatment effect for age group 20-30 is 0.48614, which is the revenue gain per user in the age group of 20-30.
-- The average treatment effect for age group 30-40 is 0.89885, which is the revenue gain per user in the age group of 30-40.
-- The average treatment effect for age group 40+ is 1.22297, which is the revenue gain per user in the age group of 40+.
+
+- The treatment effect for age group 20-30 is 0.48614, which is the revenue gain per user in the age group of 20-30.
+- The treatment effect for age group 30-40 is 0.89885, which is the revenue gain per user in the age group of 30-40.
+- The treatment effect for age group 40+ is 1.22297, which is the revenue gain per user in the age group of 40+.
 
 Given that the cost of the promotion is $0.8 per user, below are the gain from the promotion for each age group of customers and some findings:
 
 (1) It is profitable to run this promotion among age groups 30-40 and 40+, and 40+ is the most profitable age group.
-Profit gain per user for age group 30-40 = 0.89885 - 0.8 = 0.09885
-Profit gain per user for age group 40+ = 1.22297 - 0.8 = 0.42297
+Profit gain per user for age group 30-40 = 0.89885 - 0.8 = 0.09885.
+Profit gain per user for age group 40+ = 1.22297 - 0.8 = 0.42297.
 
 (2) It is unprofitable to run this promotion among age group 20-30.
-Profit loss per user for age group 20-30 = 0.48614 - 0.8 = -0.31386
+Profit loss per user for age group 20-30 = 0.48614 - 0.8 = -0.31386.
 
 (3) Overall gain from the promotion based on the small trial of 12000 by combining 3 age groups is 
 4000 * 0.09885 + 4000 * 0.42297 + 4000 * (-0.31386) = 831.84
@@ -223,15 +227,18 @@ summary(mle1)
 #  beta0       beta1        beta2
 # -0.07906284  0.66639176  -1.66095162
 ```
-Interpretation of coefficients:
+**Interpretation of coefficients:**
 
 - beta0 = -0.07906249
+
 Price coefficient: One unit increase in price of a product, either JustGrab or GrabShare, will result in a 0.0791 units decrease in the utility level in average.
 
 - beta1 = 0.66638432
+
 The preference for JustGrab (j = 1) relative to not choosing any services is higher i.e. JustGrab is a more attractive option / generates higher utility than not choosing any (outside option).
 
 - beta2 = -1.66094764
+
 The preference for GrabShare (j = 2) relative to not choosing any services is lower i.e. GrabShare is a less attractive option / generates lower utility than not choosing any (outside option).
 
 
@@ -239,10 +246,10 @@ The preference for GrabShare (j = 2) relative to not choosing any services is lo
 ### Discuss any potential endogeneity issue. Implement an estimation procedure that solves the endogeneity issue.
 
 **Endogeneity issue:**
-Demand for GrabShare is unobserved, being an omitted variable which results in the endogeneity issue. During the morning peak hours when many people rush for school and work, the demand for GrabShare is high. This increase in demand leads to price surge, which results in higher price. Thus, demand for GrabShare is correlated with price2. Also, higher demand implies higher utility gained by customer once they obtain the GrabShare service, which affects customer choice. This suggests demand affects choice. Therefore, omitting the demand variable in the model will lead to omitted vairiable bias, resulting in endogeneity.
+Underlying demand is unobserved, being an omitted variable which results in the endogeneity issue. During the morning peak hours when many people rush for school and work, the demand for GrabShare (j=2) is high. This increase in demand leads to price surge, which results in higher price. Thus, demand for GrabShare is correlated with price2 via surge2. Also, higher demand implies higher utility gained by customer once they obtain the GrabShare service, which affects customer choice. This suggests demand affects choice. Therefore, omitting the demand variable in the model will lead to omitted variable bias, resulting in endogeneity.
 
 **Proposed solution:**
-Demand for GrabShare is reflected by surge2 which is demand-driven. Because the underlying demand is unobserved to us, we can include surge2 in the model instead. The solution is to use surge as an instrumental variable. Surge pricing only affects customer's utility level / choice only through the final price. Therefore, surge price is a good instrumental variable when running regression of utility on price.
+Demand for GrabShare is reflected by surge2 which is demand-driven, so we include surge2 as an instrumental variable. Surge only affects customer's utility level / choice only through the final price, and is strongly correlated with demand. Therefore, surge is a good instrumental variable.
 
 ```{r Q2.2 ivreg of logistic model}
 data2$sales = 1
@@ -261,9 +268,8 @@ lm_dta$log_odds=log(lm_dta$share/(lm_dta$share0))
 lm_dta$price=(lm_dta$choices==1)*lm_dta$p1+
 (lm_dta$choices==2)*lm_dta$p2   #the price for the focal product
 lm_dta$product=as.factor(as.character(lm_dta$choices))
-lm_dta[1:20,]
-
 lm_dta$surge = (lm_dta$choices==1)*(lm_dta$surge_1) + (lm_dta$choices==2)*(lm_dta$surge_2)
+lm_dta[1:20,]
 
 logistic_regression=lm(log_odds~price+product,lm_dta)
 iv_reg=ivreg(log_odds ~ price+product|surge+product, data=lm_dta)  # surge as iv for price
@@ -281,6 +287,7 @@ The parameters are found to be:
 ## Part III
 ### Calculate optimal $p_j$ if product j is the only product in the market, or if both products are in the market. Explain why the optimal prices are different.
 
+**Optimal price for single product market**
 ```{r Q2.3.1 one product}
 beta0 = -0.213
 beta1 = 1.685
@@ -311,6 +318,7 @@ c(-profit_function1(p1), -profit_function2(p2))
 - JustGrab is the only product: optimal price is 8.681130, with profit 3.9852603.
 - GrabShare is the only product: optimal price is 5.326119. with profit 0.6312835.
 
+**Optimal prices for both products market**
 ```{r Q2.3.2 two products}
 beta0 = -0.213
 beta1 = 1.685
@@ -341,13 +349,16 @@ c(p1,p2)
 - Both products are in the market: optimal prices are 8.842886 and 8.823795 respectively, with total profit 4.147978.
 
 **Explanation for different prices:**
-GrabShare and JustGrab are substitutes, so the company has incentive to increase price both products higher than single product to avoid canibalization effect.
+
+GrabShare and JustGrab are substitutes, when the company cuts price for one product the demand for the other product will drop, so the company has incentive to increase prices both products higher than single product to avoid cannibalization effect.
 
 # Question 3
-##Part I
+
+## Part I
+
 ### Assume that after the merger of firm 1 and firm 2, prices of product 1 and product 2 will be reoptimized as in a multiproduct pricing problem. But firm 3’s price is held constant. Assume that lambda1 = lambda2 = 1. Solve the post-merger market outcome (prices, sales and costs, profits). Compare them with the pre-merger equilibrium.
 
-Pre-merger:
+**Before merger:**
 ```{r Q3.1.1 pre-merger}
 set.seed(37)
 #parameters
@@ -440,10 +451,10 @@ c(-profit_1(c(price1)),-profit_2(c(price2)),-profit_3(c(price3)))
 ```
 - The prices of the three products before merger are 42.47629, 30.04197, 42.47629.
 - The sales of the three products before merger are 3.313246, 1.769962, 3.313246 (million).
-- The cost of the three products before merger is 63.59215, 77.35330, 63.59215 (million).
-- The profits of the three products before merger is 77.14225, -24.18015,  77.14225 (million).
+- The costs of the three products before merger are 63.59215, 77.35330, 63.59215 (million).
+- The profits of the three products before merger are 77.14225, -24.18015,  77.14225 (million).
 
-Post-merger:
+**After merger:**
 ```{r Q3.1.2 post-merger}
 cost_merged = function(s1,s2,lambda1=1,lambda2=1) {
   return(lambda1*cost(s1) + lambda2*cost(s2))
@@ -482,16 +493,19 @@ c(-profit_merged(c(price1, price1)), -profit_3(price3))
 
 ```
 
-If firm 3’s price is held constant:
+If firm 3’s price is held constant as 42.47629:
 
 - The prices of the three products after merger are 50.38601 46.79862 42.47629.
 - The sales of the three products after merger are 3.038511 1.244818 3.852256 (million).
-- The cost of the post-merger firm and firm 3 after merger is 148.81552  59.90829 (million).
-- The profits of the post-merger firm and firm 3 after merger is 52.9621 103.7213 (million).
+- The costs of the post-merger firm and firm 3 after merger are 148.81552  59.90829 (million).
+- The profits of the post-merger firm and firm 3 after merger are 52.9621 103.7213 (million).
 
-Compared with the pre-merger equilibrium:
-the prices of product 1 and 2 increase; sales of product 1 and 2 decreases, sales of product 3 increases; the sum of cost of firm 1 and 2 increases from 63.59215+77.35330 = 140.9454 to 148.81552 and the cost of firm 3 decrease.
-The profit of the merge increases from 77.14225-24.18015 = 52.9621 to 62.29782; the profit of firm 3 increases
+**Compared with the pre-merger equilibrium:**
+
+- The prices of product 1 and 2 increase.
+- Sales of product 1 and 2 decrease, sale of product 3 increases.
+- The sum of cost of firm 1 and 2 increases from 63.59215 + 77.35330 = 140.9454 to 148.81552 and the cost of firm 3 decreases.
+- The profit of the merger increases from 77.14225 - 24.18015 = 52.9621 to 62.29782, the profit of firm 3 increases.
 
 ## Part II
 ### In reality, firm 3 will respond as predicted by a simultaneous move pricing game.
@@ -536,10 +550,10 @@ c(-profit_merged(c(price1, price2)),-profit_3(c(price3)))
 ```
 If firm 3 responds as predicted by a simultaneous move pricing game:
 
-- The prices of the three products after merger are 51.45059 47.79469 45.91185.
-- The sales of the three products after merger are 3.100972 1.273021 3.661517(million).
-- The cost of the merge and firm 3 after merger is 148.00072  61.14547 (million).
-- The profits of the post-merger firm and firm 3 after merger is 72.38972 106.96156.
+- The prices of the three products after merger are 51.45059, 47.79469, 45.91185.
+- The sales of the three products after merger are 3.100972, 1.273021, 3.661517(million).
+- The cost of the merge and firm 3 after merger is 148.00072, 61.14547 (million).
+- The profits of the post-merger firm and firm 3 after merger is 72.38972, 106.96156 (million).
 
 Compared with the answer in part I:
 
@@ -550,6 +564,7 @@ Compared with the answer in part I:
 
 
 **b. Conduct a merger analysis for different values of $\lambda_1$ and $\lambda_2$.**
+
 ```{r Q3.2.b}
 merger_analysis = function(lambda1, lambda2) {
   cost_merged = function(s1,s2) {
@@ -785,7 +800,7 @@ Explanation:
 ## Part III
 ### The effect of price sensitivity on stockpiling behaviour. Change the value of price coefficient (keep other parameters untouched), respectively. Describe and explain what you observe.
 
-### Set price coefficient larger
+### Set different price coefficients
 ```{r Q4.3.1}
 # price coeff larger
 new_param_2=list(beta=0.99,
@@ -804,7 +819,9 @@ results_1=value_function_iteration(settings, new_param_2, price)
 results_2=value_function_iteration(settings, new_param_3, price)
 c(results_1, results_2)
 ```
+
 Observation:
+
 - When price sensitivity is larger, all utility values at each current inventory levels and price promotions decrease.
 - The customer only opt for choice 2 (buy large package) when current inventory is not close to full, and he always opt for choice 3 (not buying) when there is no promotions even though the current inventory is 0.
 
@@ -839,6 +856,8 @@ results
 # Choice 2, large package
 5*0.84 + 3*0.16
 ```
+
+Observation and explanation:
 
 - After the price settings change, all utility values at each current inventory levels increase as compared to original settings.
 
